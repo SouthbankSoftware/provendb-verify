@@ -46,4 +46,3 @@ run:
 
       # cleanup
       docker-compose -f provendb-verify/ci/task-unit-test/docker-compose-unit-test.yml down
-      docker volume rm $(docker volume ls -q)
