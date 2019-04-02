@@ -18,7 +18,7 @@
 # @Author: guiguan
 # @Date:   2018-08-01T15:46:09+10:00
 # @Last modified by:   guiguan
-# @Last modified time: 2019-04-02T14:11:19+11:00
+# @Last modified time: 2019-04-02T15:30:00+11:00
 
 PROJECT_IMPORT_PATH := github.com/SouthbankSoftware/provendb-verify
 APP_NAME := provendb-verify
@@ -47,7 +47,7 @@ test-dev:
 	# -test.v verbose
 	go test $(LD_FLAGS) -count=1 -test.v $(PKGS)
 clean:
-	go clean -testcache
+	go clean -testcache $(PKGS)
 	rm -f $(APP_NAME)* $(PLAYGROUND_NAME)*
 playground:
 	go run cmd/$(PLAYGROUND_NAME)/$(PLAYGROUND_NAME).go
