@@ -1,0 +1,6 @@
+debug*
+vendor
+/provendb-*
+/playground*
+/proofs
+/local

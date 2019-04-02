@@ -1,0 +1,39 @@
+{
+    "hash": "ffff27222fe366d0b8988b7312c6ba60ee422418d92b62cdcb71fe2991ee7391",
+    "hash_id_node": "66a34bd0-f4e7-11e7-a52b-016a36a9d789",
+    "hash_submitted_node_at": "2018-01-09T02:47:15Z",
+    "hash_id_core": "66bd6380-f4e7-11e7-895d-0176dc2220aa",
+    "hash_submitted_core_at": "2018-01-09T02:47:15Z",
+    "branches": [
+      {
+        "label": "cal_anchor_branch",
+        "anchors": [
+          {
+            "type": "cal",
+            "anchor_id": "985635",
+            "uris": [
+              "https://a.chainpoint.org/calendar/985635/hash"
+            ],
+            "expected_value": "4690932f928fb7f7ce6e6c49ee95851742231709360be28b7ce2af7b92cfa95b"
+          }
+        ],
+        "branches": [
+          {
+            "label": "btc_anchor_branch",
+            "anchors": [
+              {
+                "type": "btc",
+                "anchor_id": "503275",
+                "uris": [
+                  "https://a.chainpoint.org/calendar/985814/data"
+                ],
+                "expected_value": "c617f5faca34474bea7020d75c39cb8427a32145f9646586ecb9184002131ad9"
+              }
+            ],
+            "opReturnValue": "267335262e21e7adb4220068b4b90b7ff066324935d7f61ceab2a64080b06b1b",
+            "btcTxId": "ba3c8c3e547ed73471c28a69659373f3f0a3b726aab31cdecd14513d9c581f1e"
+          }
+        ]
+      }
+    ]
+  }

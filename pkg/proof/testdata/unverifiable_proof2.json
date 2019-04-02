@@ -1,0 +1,72 @@
+{
+  "@context": "https://w3id.org/chainpoint/v3",
+  "type": "Chainpoint",
+  "hash": "09ca7e4eaa6e8ae9c7d261167129184883644d07dfba7cbfbc4c8a2e08360d5b",
+  "hash_id_node": "fdfd57f0-a040-11e8-aebe-018923ea6b64",
+  "hash_submitted_node_at": "2018-08-15T04:09:23Z",
+  "hash_id_core": "00410660-a041-11e8-8133-0115802a4fd0",
+  "hash_submitted_core_at": "2018-08-15T04:09:27Z",
+  "branches": [
+    {
+      "label": "cal_anchor_branch",
+      "ops": [
+        {
+          "l": "node_id:fdfd57f0-a040-11e8-aebe-018923ea6b64"
+        },
+        {
+          "op": "sha-256"
+        },
+        {
+          "l": "core_id:00410660-a041-11e8-8133-0115802a4fd0"
+        },
+        {
+          "op": "sha-256"
+        },
+        {
+          "l": "nist:1534306080:87763a0fb985295c23fc3f7c954a76433ed445a158715c305cd82403e326c4245b87e363d7558d38f84714b6c91a1f22190ac0bdbab56f7e00a16196faf3d0db"
+        },
+        {
+          "op": "sha-256"
+        },
+        {
+          "l": "1e6e549a5db9d82403f1097fec396742105c7dbe8fd94d7fa0830c1e2049d0e3"
+        },
+        {
+          "op": "sha-256"
+        },
+        {
+          "r": "f9b72cb634a63cd912d0b265d1e0627fdd9ae38cb8c5143509334c0139169607"
+        },
+        {
+          "op": "sha-256"
+        },
+        {
+          "r": "9b58927c5ddd557d30b617ed885c1dcc9b45163ea0a727b8600028d8a583fa9e"
+        },
+        {
+          "op": "sha-256"
+        },
+        {
+          "l": "1901835:1534306177:1:https://b.chainpoint.org:cal:1901835"
+        },
+        {
+          "r": "a7a76610e6f4b52abbe1a37f1eea3a14eb88cf0d3caf4553e296057e5a96d753"
+        },
+        {
+          "op": "sha-256"
+        },
+        {
+          "anchors": [
+            {
+              "type": "cal",
+              "anchor_id": "1901835",
+              "uris": [
+                "https://b.chainpoint.org/doesntexist"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

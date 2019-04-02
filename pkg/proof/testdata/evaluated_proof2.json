@@ -1,0 +1,22 @@
+{
+    "hash": "09ca7e4eaa6e8ae9c7d261167129184883644d07dfba7cbfbc4c8a2e08360d5b",
+    "hash_id_node": "fdfd57f0-a040-11e8-aebe-018923ea6b64",
+    "hash_submitted_node_at": "2018-08-15T04:09:23Z",
+    "hash_id_core": "00410660-a041-11e8-8133-0115802a4fd0",
+    "hash_submitted_core_at": "2018-08-15T04:09:27Z",
+    "branches": [
+      {
+        "label": "cal_anchor_branch",
+        "anchors": [
+          {
+            "type": "cal",
+            "anchor_id": "1901835",
+            "uris": [
+              "https://b.chainpoint.org/calendar/1901835/hash"
+            ],
+            "expected_value": "e99553eb5bedaa3ba92a4111130a64d30552f0040a0947cd3b98b0c2ff8eefbc"
+          }
+        ]
+      }
+    ]
+  }
