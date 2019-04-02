@@ -37,3 +37,21 @@ Example:
 ```bash
 BC_TOKEN=${YOUR_TOKEN_HERE} make test-dev
 ```
+
+## Packages
+
+### [`merkle`](https://github.com/SouthbankSoftware/provendb-verify/tree/master/pkg/merkle)
+
+Contains the generic hashing interface for bags
+
+### [`merkle.chainpoint`](https://github.com/SouthbankSoftware/provendb-verify/tree/master/pkg/merkle/chainpoint)
+
+Contains the Chainpoint flavored merkle tree implementation for above hashing interface
+
+### [`crypto`](https://github.com/SouthbankSoftware/provendb-verify/tree/master/pkg/crypto)
+
+Contains convenient helpers for generating hashes, such as sha256
+
+### [`proof`](https://github.com/SouthbankSoftware/provendb-verify/tree/master/pkg/proof)
+
+Contains all the logics to manipulate and verify ProvenDB/Chainpoint Proofs
