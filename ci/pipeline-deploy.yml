@@ -1,0 +1,110 @@
+# provendb-verify
+# Copyright (C) 2019  Southbank Software Ltd.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+# @Author: guiguan, koustubhg
+# @Date:   2019-01-29T13:58:17+11:00
+# @Last modified by:   guiguan
+# @Last modified time: 2019-04-02T15:52:27+11:00
+
+# update pipeline:
+# fly -t staging sp -c pipeline-deploy.yml -p provendb-verify-deploy -l vars.yml
+
+resource_types:
+  - name: slack-alert
+    type: docker-image
+    source:
+      repository: southbanksoftware/concourse-slack-alert-resource
+  - name: github-status
+    type: docker-image
+    source:
+      repository: dpb587/github-status-resource
+      tag: master
+
+resources:
+  - name: slack
+    type: slack-alert
+    source:
+      url: ((common.slack-webook-url))
+  - name: github-status
+    type: github-status
+    source:
+      repository: SouthbankSoftware/provendb-verify
+      access_token: ((provendb-verify.git-access-token))
+      branch: master
+      context: deploy
+  - name: provendb-verify
+    type: git
+    check_every: 5m
+    webhook_token: ((provendb-verify.webhook-token))
+    source:
+      uri: https://github.com/SouthbankSoftware/provendb-verify.git
+      branch: master
+      username: ((provendb-verify.git-username))
+      password: ((provendb-verify.git-password))
+      disable_ci_skip: false
+  - name: version
+    type: semver
+    source:
+      driver: gcs
+      bucket: provendb-ci
+      json_key: ((common.serviceaccount))
+      key: provendb-verify/version/version.txt
+      initial_version: 0.0.0
+  - name: golang
+    type: docker-image
+    source:
+      repository: golang
+      tag: 1.12.0
+
+jobs:
+  - name: build
+    serial: true
+    plan:
+      - get: provendb-verify
+        trigger: true
+      - put: github-status
+        params:
+          commit: provendb-verify
+          state: pending
+      - get: version
+        params: { bump: patch }
+      - get: golang
+        params: { save: true }
+      # TODO: add logic to build and push to gcs bucket
+      # - put: docker-registry
+      #   params:
+      #     additional_tags: provendb-verify/.git/short_ref
+      #     build: provendb-verify
+      #     tag_as_latest: true
+      #     tag_file: version/number
+      #   get_params: { skip_download: true }
+      #   on_failure:
+      #     put: github-status
+      #     params:
+      #       commit: provendb-verify
+      #       state: failure
+      - put: version
+        params: { file: version/number }
+    on_failure:
+      put: slack
+      params:
+        alert_type: failed
+        text: ((slack.guan))
+    on_success:
+      put: slack
+      params:
+        alert_type: success
