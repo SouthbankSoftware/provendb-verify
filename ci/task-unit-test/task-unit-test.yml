@@ -27,7 +27,9 @@ image_resource:
 inputs:
   - name: provendb-verify
   - name: golang
-params: { GIT_ACCESS_TOKEN: ((provendb-verify.git-access-token)) }
+params:
+  GIT_ACCESS_TOKEN: ((provendb-verify.git-access-token))
+  BC_TOKEN: ((provendb-verify.bc-token))
 run:
   path: sh
   args:
