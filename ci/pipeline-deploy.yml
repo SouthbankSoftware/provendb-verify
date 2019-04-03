@@ -24,6 +24,10 @@
 # fly -t staging sp -c pipeline-deploy.yml -p provendb-verify-deploy -l vars.yml
 
 resource_types:
+  - name: meta
+    type: docker-image
+    source:
+      repository: swce/metadata-resource
   - name: slack-alert
     type: docker-image
     source:
@@ -33,8 +37,14 @@ resource_types:
     source:
       repository: dpb587/github-status-resource
       tag: master
+  - name: gcs-resource
+    type: docker-image
+    source:
+      repository: frodenas/gcs-resource
 
 resources:
+  - name: meta
+    type: meta
   - name: slack
     type: slack-alert
     source:
@@ -56,6 +66,14 @@ resources:
       username: ((provendb-verify.git-username))
       password: ((provendb-verify.git-password))
       disable_ci_skip: false
+  - name: provendb-releases
+    type: git
+    source:
+      uri: https://github.com/SouthbankSoftware/provendb-releases.git
+      branch: master
+      username: ((provendb-verify.git-username))
+      password: ((provendb-verify.git-password))
+      disable_ci_skip: false
   - name: version
     type: semver
     source:
@@ -63,15 +81,28 @@ resources:
       bucket: provendb-ci
       json_key: ((common.serviceaccount))
       key: provendb-verify/version/version.txt
-      initial_version: 0.0.0
-  - name: golang
-    type: docker-image
+      initial_version: 1.0.0
+  - name: release-darwin_amd64
+    type: gcs-resource
     source:
-      repository: golang
-      tag: 1.12.0
+      bucket: provendb-dev
+      json_key: ((common.serviceaccount))
+      versioned_file: provendb-verify/provendb-verify_darwin_amd64
+  - name: release-linux_amd64
+    type: gcs-resource
+    source:
+      bucket: provendb-dev
+      json_key: ((common.serviceaccount))
+      versioned_file: provendb-verify/provendb-verify_linux_amd64
+  - name: release-windows_amd64
+    type: gcs-resource
+    source:
+      bucket: provendb-dev
+      json_key: ((common.serviceaccount))
+      versioned_file: provendb-verify/provendb-verify_windows_amd64.exe
 
 jobs:
-  - name: build
+  - name: build-and-deploy
     serial: true
     plan:
       - get: provendb-verify
@@ -81,30 +112,44 @@ jobs:
           commit: provendb-verify
           state: pending
       - get: version
-        params: { bump: patch }
-      - get: golang
-        params: { save: true }
-      # TODO: add logic to build and push to gcs bucket
-      # - put: docker-registry
-      #   params:
-      #     additional_tags: provendb-verify/.git/short_ref
-      #     build: provendb-verify
-      #     tag_as_latest: true
-      #     tag_file: version/number
-      #   get_params: { skip_download: true }
-      #   on_failure:
-      #     put: github-status
-      #     params:
-      #       commit: provendb-verify
-      #       state: failure
+      - task: build
+        file: provendb-verify/ci/task-build/task-build.yml
+      - put: release-darwin_amd64
+        params:
+          file: provendb-verify/provendb-verify_darwin_amd64
+      - put: release-linux_amd64
+        params:
+          file: provendb-verify/provendb-verify_linux_amd64
+      - put: release-windows_amd64
+        params:
+          file: provendb-verify/provendb-verify_windows_amd64.exe
+      - get: meta
+      - get: provendb-releases
+      - task: save-build-info
+        file: provendb-verify/ci/task-save-build-info/task-save-build-info.yml
+      - put: provendb-releases
+        params:
+          repository: provendb-releases
       - put: version
-        params: { file: version/number }
+        params:
+          bump: patch
     on_failure:
-      put: slack
-      params:
-        alert_type: failed
-        text: ((slack.guan))
+      do:
+        - put: slack
+          params:
+            alert_type: failed
+            text: ((slack.guan))
+        - put: github-status
+          params:
+            commit: provendb-verify
+            state: failure
     on_success:
-      put: slack
-      params:
-        alert_type: success
+      do:
+        - put: slack
+          params:
+            alert_type: success
+        - put: github-status
+          params:
+            commit: provendb-verify
+            state: success
+          attempts: 3
