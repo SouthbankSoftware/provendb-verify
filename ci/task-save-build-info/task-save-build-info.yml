@@ -1,0 +1,64 @@
+# provendb-verify
+# Copyright (C) 2019  Southbank Software Ltd.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+# @Author: guiguan
+# @Date:   2019-04-03T18:08:16+11:00
+# @Last modified by:   guiguan
+# @Last modified time: 2019-04-03T18:08:18+11:00
+
+platform: linux
+image_resource:
+  type: docker-image
+  source: { repository: alpine/git }
+inputs:
+  - name: provendb-verify
+  - name: provendb-releases
+  - name: version
+  - name: release-darwin_amd64
+  - name: release-linux_amd64
+  - name: release-windows_amd64
+  - name: meta
+outputs:
+  - name: provendb-releases
+run:
+  path: sh
+  args:
+    - -exc
+    - |
+      echo "{\
+      \"version\": \"$(cat version/number)\", \
+      \"commit\": \"$(cat provendb-verify/.git/short_ref)\", \
+      \"build_url\": \"$(cat meta/atc-external-url)/builds/$(cat meta/build-id)\", \
+      \"darwin_amd64\": {\
+      \"generation\": \"$(cat release-darwin_amd64/generation)\", \
+      \"uri\": \"$(cat release-darwin_amd64/url)\"\
+      }, \
+      \"linux_amd64\": {\
+      \"generation\": \"$(cat release-linux_amd64/generation)\", \
+      \"uri\": \"$(cat release-linux_amd64/url)\"\
+      }, \
+      \"windows_amd64\": {\
+      \"generation\": \"$(cat release-windows_amd64/generation)\", \
+      \"uri\": \"$(cat release-windows_amd64/url)\"\
+      }\
+      }" >> provendb-releases/provendb-verify-releases.jsonl
+
+      cd provendb-releases
+      git add .
+      git config --global user.email "developer@southbanksoftware.com"
+      git config --global user.name "Concourse"
+      git commit -m "Adds \`provendb-verify\` build info for v$(cat ../version/number)"
