@@ -30,10 +30,10 @@ The CLI release version
 Example:
 
 ```bash
-APP_VERSION=v0.0.2 make
+APP_VERSION=0.0.2 make
 
 ./provendb-verify -v
-# provendb-verify version v0.0.2
+# provendb-verify version 0.0.2
 ```
 
 ### `BC_TOKEN`

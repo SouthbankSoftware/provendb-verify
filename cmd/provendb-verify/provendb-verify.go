@@ -19,7 +19,7 @@
  * @Author: guiguan
  * @Date:   2018-08-01T13:23:16+10:00
  * @Last modified by:   guiguan
- * @Last modified time: 2019-04-02T13:42:57+11:00
+ * @Last modified time: 2019-04-04T09:23:05+11:00
  */
 
 package main
@@ -31,7 +31,7 @@ import (
 )
 
 var (
-	cmdVersion = "v0.0.0"
+	cmdVersion = "0.0.0"
 )
 
 const (

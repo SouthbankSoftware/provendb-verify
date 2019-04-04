@@ -18,11 +18,11 @@
 # @Author: guiguan
 # @Date:   2018-08-01T15:46:09+10:00
 # @Last modified by:   guiguan
-# @Last modified time: 2019-04-02T15:30:00+11:00
+# @Last modified time: 2019-04-04T09:27:56+11:00
 
 PROJECT_IMPORT_PATH := github.com/SouthbankSoftware/provendb-verify
 APP_NAME := provendb-verify
-APP_VERSION ?= v0.0.0
+APP_VERSION ?= 0.0.0
 BC_TOKEN ?=
 PLAYGROUND_NAME := playground
 PKGS := $(shell go list ./cmd/... ./pkg/...)

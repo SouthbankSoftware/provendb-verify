@@ -114,15 +114,16 @@ jobs:
       - get: version
       - task: build
         file: provendb-verify/ci/task-build/task-build.yml
-      - put: release-darwin_amd64
-        params:
-          file: provendb-verify/provendb-verify_darwin_amd64
-      - put: release-linux_amd64
-        params:
-          file: provendb-verify/provendb-verify_linux_amd64
-      - put: release-windows_amd64
-        params:
-          file: provendb-verify/provendb-verify_windows_amd64.exe
+      - aggregate:
+          - put: release-darwin_amd64
+            params:
+              file: provendb-verify/provendb-verify_darwin_amd64
+          - put: release-linux_amd64
+            params:
+              file: provendb-verify/provendb-verify_linux_amd64
+          - put: release-windows_amd64
+            params:
+              file: provendb-verify/provendb-verify_windows_amd64.exe
       - get: meta
       - get: provendb-releases
       - task: save-build-info
