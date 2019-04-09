@@ -24,7 +24,7 @@ version: "2"
 
 services:
   tests:
-    image: golang:1.12.0
+    image: golang:1.12.3
     container_name: tests
     command: [
         "/bin/sh",
