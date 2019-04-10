@@ -45,8 +45,9 @@ run:
 
       # cleanup
       cleanup() {
-        # docker-compose -f provendb-verify/ci/task-unit-test/docker-compose-unit-test.yml rm -fsv tests
-        # stop_docker
+        docker stop -t 0 $(docker container ls -a -q) || true
+        docker system prune -a -f || true
+        stop_docker || true
       }
       trap cleanup EXIT
 
