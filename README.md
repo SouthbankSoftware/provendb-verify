@@ -6,11 +6,11 @@ ProvenDB Open Source Verification CLI
 
 Test status
 
-[![provendb-verify-test](http://concourse.provendb.com/api/v1/pipelines/provendb-verify-test/jobs/test/badge)](http://concourse.provendb.com/teams/main/pipelines/provendb-verify-test)
+[![provendb-verify-test](https://concourse.provendb.com/api/v1/pipelines/provendb-verify-test/jobs/test/badge)](http://concourse.provendb.com/teams/main/pipelines/provendb-verify-test)
 
 Deploy status
 
-[![provendb-verify-deploy](http://concourse.provendb.com/api/v1/pipelines/provendb-verify-deploy/jobs/build-and-deploy/badge)](http://concourse.provendb.com/teams/main/pipelines/provendb-verify-deploy)
+[![provendb-verify-deploy](https://concourse.provendb.com/api/v1/pipelines/provendb-verify-deploy/jobs/build-and-deploy/badge)](http://concourse.provendb.com/teams/main/pipelines/provendb-verify-deploy)
 
 `provendb-verify` is an open source command line tool that allows ProvenDB/Chainpoint Proofs or Archives to be verified independently of the ProvenDB DBaaS.
 
