@@ -46,6 +46,7 @@ run:
       # cleanup
       cleanup() {
         docker-compose -f provendb-verify/ci/task-unit-test/docker-compose-unit-test.yml -v down
+        tail -f /dev/null
       }
       trap cleanup EXIT
 
