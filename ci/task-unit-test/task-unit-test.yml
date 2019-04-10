@@ -43,6 +43,8 @@ run:
       docker tag "$(cat golang/image-id)" "$(cat golang/repository):$(cat golang/tag)"
       docker images
 
+      trap "tail -f /dev/null" EXIT
+
       # run logic via docker compose
       docker-compose -f provendb-verify/ci/task-unit-test/docker-compose-unit-test.yml run tests
 
