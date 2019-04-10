@@ -43,8 +43,13 @@ run:
       docker tag "$(cat golang/image-id)" "$(cat golang/repository):$(cat golang/tag)"
       docker images
 
+      # cleanup
+      cleanup() {
+        docker stop -t 0 $(docker container ls -a -q) || true
+        docker system prune -a -f || true
+        stop_docker || true
+      }
+      trap cleanup EXIT
+
       # run logic via docker compose
       docker-compose -f provendb-verify/ci/task-unit-test/docker-compose-unit-test.yml run tests
-
-      # cleanup
-      docker-compose -f provendb-verify/ci/task-unit-test/docker-compose-unit-test.yml down
