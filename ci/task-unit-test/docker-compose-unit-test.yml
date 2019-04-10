@@ -26,12 +26,9 @@ services:
   tests:
     image: golang:1.12.3
     container_name: tests
-    command: [
-        "/bin/sh",
-        "-c",
-        "git config --global url.\"https://${GIT_ACCESS_TOKEN}:@github.com/\".insteadOf \"https://github.com/\" \
-        && cd /go/provendb-verify \
-        && make test",
-      ]
+    command: ["/bin/sh", "-c", "ls sdfsdf"]
+    # "git config --global url.\"https://${GIT_ACCESS_TOKEN}:@github.com/\".insteadOf \"https://github.com/\" \
+    # && cd /go/provendb-verify \
+    # && make test",
     volumes:
       - $PWD/provendb-verify:/go/provendb-verify
