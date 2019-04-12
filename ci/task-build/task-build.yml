@@ -30,7 +30,7 @@ inputs:
 outputs:
   - name: provendb-verify
 params:
-  GIT_ACCESS_TOKEN: ((provendb-verify.git-access-token))
+  GIT_ACCESS_TOKEN: ((common.git-access-token))
   BC_TOKEN: ((provendb-verify.bc-token))
 run:
   path: sh

@@ -21,7 +21,7 @@
 # @Last modified time: 2019-03-05T13:14:05+11:00
 
 # update pipeline:
-# fly -t staging sp -c pipeline-test.yml -p provendb-verify-test -l vars.yml
+# fly -t dev sp -c pipeline-test.yml -p provendb-verify-test
 
 resource_types:
   - name: slack-alert
@@ -41,10 +41,10 @@ resources:
   - name: provendb-verify
     type: pull-request
     check_every: 5m
-    webhook_token: ((provendb-verify.webhook-token))
+    webhook_token: ((common.webhook-token))
     source:
       repository: SouthbankSoftware/provendb-verify
-      access_token: ((provendb-verify.git-access-token))
+      access_token: ((common.git-access-token))
   - name: golang
     type: docker-image
     source:
@@ -66,21 +66,32 @@ jobs:
       - task: unit-test
         privileged: true
         file: provendb-verify/ci/task-unit-test/task-unit-test.yml
-        on_failure:
-          put: provendb-verify
+    on_failure:
+      do:
+        - put: slack
+          params:
+            alert_type: failed
+            text: ((slack.guan))
+        - put: provendb-verify
           params:
             path: provendb-verify
             status: failure
-      - put: provendb-verify
-        params:
-          path: provendb-verify
-          status: success
+    on_abort:
+      do:
+        - put: slack
+          params:
+            alert_type: failed
+            text: Aborted. ((slack.guan))
+        - put: provendb-verify
+          params:
+            path: provendb-verify
+            status: failure
     on_success:
-      put: slack
-      params:
-        alert_type: success
-    on_failure:
-      put: slack
-      params:
-        alert_type: failed
-        text: ((slack.guan))
+      do:
+        - put: slack
+          params:
+            alert_type: success
+        - put: provendb-verify
+          params:
+            path: provendb-verify
+            status: success
