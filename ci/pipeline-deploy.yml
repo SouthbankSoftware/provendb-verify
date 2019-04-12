@@ -21,7 +21,7 @@
 # @Last modified time: 2019-04-02T15:52:27+11:00
 
 # update pipeline:
-# fly -t staging sp -c pipeline-deploy.yml -p provendb-verify-deploy -l vars.yml
+# fly -t dev sp -c pipeline-deploy.yml -p provendb-verify-deploy
 
 resource_types:
   - name: meta
@@ -53,52 +53,52 @@ resources:
     type: github-status
     source:
       repository: SouthbankSoftware/provendb-verify
-      access_token: ((provendb-verify.git-access-token))
+      access_token: ((common.git-access-token))
       branch: master
       context: deploy
   - name: provendb-verify
     type: git
     check_every: 5m
-    webhook_token: ((provendb-verify.webhook-token))
+    webhook_token: ((common.webhook-token))
     source:
       uri: https://github.com/SouthbankSoftware/provendb-verify.git
       branch: master
-      username: ((provendb-verify.git-username))
-      password: ((provendb-verify.git-password))
+      username: ((common.git-username))
+      password: ((common.git-password))
       disable_ci_skip: false
   - name: provendb-releases
     type: git
     source:
       uri: https://github.com/SouthbankSoftware/provendb-releases.git
       branch: master
-      username: ((provendb-verify.git-username))
-      password: ((provendb-verify.git-password))
+      username: ((common.git-username))
+      password: ((common.git-password))
       disable_ci_skip: false
   - name: version
     type: semver
     source:
       driver: gcs
       bucket: provendb-ci
-      json_key: ((common.serviceaccount))
+      json_key: ((common.service-account))
       key: provendb-verify/version/version.txt
       initial_version: 1.0.0
   - name: release-darwin_amd64
     type: gcs-resource
     source:
       bucket: provendb-dev
-      json_key: ((common.serviceaccount))
+      json_key: ((common.service-account))
       versioned_file: provendb-verify/provendb-verify_darwin_amd64
   - name: release-linux_amd64
     type: gcs-resource
     source:
       bucket: provendb-dev
-      json_key: ((common.serviceaccount))
+      json_key: ((common.service-account))
       versioned_file: provendb-verify/provendb-verify_linux_amd64
   - name: release-windows_amd64
     type: gcs-resource
     source:
       bucket: provendb-dev
-      json_key: ((common.serviceaccount))
+      json_key: ((common.service-account))
       versioned_file: provendb-verify/provendb-verify_windows_amd64.exe
 
 jobs:
@@ -144,6 +144,16 @@ jobs:
           params:
             commit: provendb-verify
             state: failure
+    on_abort:
+      do:
+        - put: slack
+          params:
+            alert_type: failed
+            text: Aborted. ((slack.guan))
+        - put: github-status
+          params:
+            commit: provendb-verify
+            state: failure
     on_success:
       do:
         - put: slack
@@ -153,4 +163,3 @@ jobs:
           params:
             commit: provendb-verify
             state: success
-          attempts: 3
