@@ -131,6 +131,7 @@ jobs:
       - put: provendb-releases
         params:
           repository: provendb-releases
+          rebase: true
       - put: version
         params:
           bump: patch
