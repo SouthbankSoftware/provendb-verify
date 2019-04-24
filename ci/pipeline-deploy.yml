@@ -118,12 +118,15 @@ jobs:
           - put: release-darwin_amd64
             params:
               file: provendb-verify/provendb-verify_darwin_amd64
+              predefined_acl: publicRead
           - put: release-linux_amd64
             params:
               file: provendb-verify/provendb-verify_linux_amd64
+              predefined_acl: publicRead
           - put: release-windows_amd64
             params:
               file: provendb-verify/provendb-verify_windows_amd64.exe
+              predefined_acl: publicRead
       - get: meta
       - get: provendb-releases
       - task: save-build-info
