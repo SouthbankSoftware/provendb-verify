@@ -31,7 +31,7 @@ params:
   GIT_ACCESS_TOKEN: ((common.git-access-token))
   BC_TOKEN: ((provendb-verify.bc-token))
 run:
-  path: sh
+  path: bash
   args:
     - -exc
     - |
