@@ -19,7 +19,7 @@
  * @Author: guiguan
  * @Date:   2019-04-02T13:35:55+11:00
  * @Last modified by:   guiguan
- * @Last modified time: 2019-04-02T13:37:03+11:00
+ * @Last modified time: 2019-07-09T16:52:03+10:00
  */
 
 package main
@@ -162,6 +162,7 @@ func handleCLI(c *cli.Context) int {
 	}
 
 	var (
+		cols     []string
 		database *mongo.Database
 		opts     []interface{}
 	)
@@ -199,34 +200,9 @@ func handleCLI(c *cli.Context) int {
 			return 0
 		}
 
-		if versionID == -1 {
-			if p := c.String(provenDBProofIDKey); p != "" {
-				// use proofId to get versionId
-				var storedProof interface{}
-				storedProof, versionID, err = getProof(ctx, database, p)
-				if err != nil {
-					return cliErrorf("cannot get Chainpoint Proof using %s %s", provenDBProofIDKey, p)
-				}
+		colName := c.String("collection")
 
-				if proof == nil {
-					proof = storedProof
-				}
-			} else {
-				versionID, err = getLatestVerifiableVersion(ctx, database)
-				if err != nil {
-					return cliErrorf("failed to get the latest verifiable version: %s", err)
-				}
-			}
-		}
-
-		if proof == nil {
-			proof, _, err = getProof(ctx, database, versionID)
-			if err != nil {
-				return cliErrorf("cannot get Chainpoint Proof using %s %v: %s", provenDBVersionKey, versionID, err)
-			}
-		}
-
-		if colName, docFilter := c.String("collection"), c.String("docFilter"); colName != "" && docFilter != "" {
+		if docFilter := c.String("docFilter"); colName != "" && docFilter != "" {
 			opts = append(opts, docOpt{
 				colName,
 				docFilter,
@@ -245,9 +221,36 @@ func handleCLI(c *cli.Context) int {
 				out,
 			})
 		}
+
+		if versionID == -1 {
+			if p := c.String(provenDBProofIDKey); p != "" {
+				// use proofId to get versionId
+				var storedProof interface{}
+				storedProof, versionID, cols, err = getProof(ctx, database, p, colName)
+				if err != nil {
+					return cliErrorf("cannot get Chainpoint Proof using %s %s", provenDBProofIDKey, p)
+				}
+
+				if proof == nil {
+					proof = storedProof
+				}
+			} else {
+				versionID, err = getLatestVerifiableVersion(ctx, database)
+				if err != nil {
+					return cliErrorf("failed to get the latest verifiable version: %s", err)
+				}
+			}
+		}
+
+		if proof == nil {
+			proof, _, cols, err = getProof(ctx, database, versionID, colName)
+			if err != nil {
+				return cliErrorf("cannot get Chainpoint Proof using %s %v: %s", provenDBVersionKey, versionID, err)
+			}
+		}
 	}
 
-	msg, err := verifyProof(ctx, database, proof, versionID, opts...)
+	msg, err := verifyProof(ctx, database, proof, versionID, cols, opts...)
 	if err != nil {
 		return cliFalsifiedf("%s:\n\t%s", msg, err)
 	}

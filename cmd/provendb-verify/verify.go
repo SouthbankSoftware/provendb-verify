@@ -19,7 +19,7 @@
  * @Author: guiguan
  * @Date:   2019-04-02T13:37:34+11:00
  * @Last modified by:   guiguan
- * @Last modified time: 2019-04-02T13:38:07+11:00
+ * @Last modified time: 2019-07-09T15:15:25+10:00
  */
 
 package main
@@ -165,7 +165,14 @@ func verifyProofArchive(ctx context.Context, filename string) (msg string, er er
 	return
 }
 
-func verifyProof(ctx context.Context, database *mongo.Database, proof interface{}, version int64, opts ...interface{}) (msg string, err error) {
+func verifyProof(
+	ctx context.Context,
+	database *mongo.Database,
+	proof interface{},
+	version int64,
+	cols []string,
+	opts ...interface{},
+) (msg string, err error) {
 	var (
 		inProofType, outProofType proofType
 		proofName, outPath        string
@@ -217,6 +224,28 @@ func verifyProof(ctx context.Context, database *mongo.Database, proof interface{
 			msg = prefix + " is verified"
 		}
 	}()
+
+	if database != nil && proofDocOpt != nil {
+		if len(cols) > 0 {
+			// has collection scope
+			isInScope := false
+
+			for _, n := range cols {
+				if proofDocOpt.colName == n {
+					isInScope = true
+					break
+				}
+			}
+
+			if !isInScope {
+				err = status.NewVerificationStatusError(
+					status.VerificationStatusUnverifiable,
+					fmt.Errorf("the collection level version proof doesn't cover the collection `%s`", proofDocOpt.colName),
+				)
+				return
+			}
+		}
+	}
 
 	err = schema.Verify(proof)
 	if err != nil {
@@ -272,7 +301,7 @@ func verifyProof(ctx context.Context, database *mongo.Database, proof interface{
 		}
 
 		if actualHash == nil {
-			hr, err = hashDatabase(ctx, database, version, proofMap)
+			hr, err = hashDatabase(ctx, database, version, proofMap, cols)
 			if err != nil {
 				return
 			}

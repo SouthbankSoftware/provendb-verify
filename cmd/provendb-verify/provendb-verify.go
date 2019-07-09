@@ -19,7 +19,7 @@
  * @Author: guiguan
  * @Date:   2018-08-01T13:23:16+10:00
  * @Last modified by:   guiguan
- * @Last modified time: 2019-04-04T09:23:05+11:00
+ * @Last modified time: 2019-07-09T17:11:07+10:00
  */
 
 package main
@@ -35,33 +35,40 @@ var (
 )
 
 const (
-	cmdName                      = "provendb-verify"
-	versionIDCurrent             = "current"
-	defaultMongoDBPort           = "27017"
-	defaultMongoDBURI            = "mongodb://localhost:" + defaultMongoDBPort
-	defaultErrorHelpMsg          = "try '" + cmdName + " -h' for more information"
-	defaultMaxPoolSize           = uint16(30)
-	docFilterFormatHelpMsg       = `MongoDB extended JSON format, such as, '{"_id": {"$oid": "5b6a6a1646e0fb00080aac8c"}}'`
-	idKey                        = "_id"
-	mongoDBSystemPrefix          = "system."
-	provenDBMetaPrefix           = "_provendb"
-	provenDBIgnoredSuffix        = "pdbignore"
-	provenDBVersionProofs        = provenDBMetaPrefix + "_versionProofs"
-	provenDBDocMetaKey           = provenDBMetaPrefix + "_metadata"
-	provenDBDocMetaIDKey         = provenDBDocMetaKey + "." + idKey
-	provenDBMinVersionKey        = "minVersion"
-	provenDBForgottenKey         = "forgotten"
-	provenDBDocMetaMinVersionKey = provenDBDocMetaKey + "." + provenDBMinVersionKey
-	provenDBDocMetaMaxVersionKey = provenDBDocMetaKey + ".maxVersion"
-	provenDBVersionKey           = "version"
-	provenDBVersionIDKey         = provenDBVersionKey + "Id"
-	provenDBVersionCurrent       = "current"
-	provenDBProofIDKey           = "proofId"
-	provenDBSubmittedKey         = "submitted"
-	provenDBStatusKey            = "status"
-	provenDBProofKey             = "proof"
-	provenDBHashKey              = "hash"
-	provenDBDocBranch            = "pdb_doc_branch"
+	cmdName                       = "provendb-verify"
+	versionIDCurrent              = "current"
+	defaultMongoDBPort            = "27017"
+	defaultMongoDBURI             = "mongodb://localhost:" + defaultMongoDBPort
+	defaultErrorHelpMsg           = "try '" + cmdName + " -h' for more information"
+	defaultMaxPoolSize            = uint16(30)
+	docFilterFormatHelpMsg        = `MongoDB extended JSON format, such as, '{"_id": {"$oid": "5b6a6a1646e0fb00080aac8c"}}'`
+	idKey                         = "_id"
+	mongoDBSystemPrefix           = "system."
+	provenDBMetaPrefix            = "_provendb"
+	provenDBIgnoredSuffix         = "pdbignore"
+	provenDBVersionProofs         = provenDBMetaPrefix + "_versionProofs"
+	provenDBDocMetaKey            = provenDBMetaPrefix + "_metadata"
+	provenDBDocMetaIDKey          = provenDBDocMetaKey + "." + idKey
+	provenDBMinVersionKey         = "minVersion"
+	provenDBForgottenKey          = "forgotten"
+	provenDBDocMetaMinVersionKey  = provenDBDocMetaKey + "." + provenDBMinVersionKey
+	provenDBDocMetaMaxVersionKey  = provenDBDocMetaKey + ".maxVersion"
+	provenDBVersionKey            = "version"
+	provenDBVersionIDKey          = provenDBVersionKey + "Id"
+	provenDBVersionCurrent        = "current"
+	provenDBProofIDKey            = "proofId"
+	provenDBSubmittedKey          = "submitted"
+	provenDBStatusKey             = "status"
+	provenDBScopeKey              = "scope"
+	provenDBScopeCollection       = "collection"
+	provenDBScopeDatabase         = "database"
+	provenDBDetailsKey            = "details"
+	provenDBCollectionsKey        = "collections"
+	provenDBDetailsCollectionsKey = provenDBDetailsKey + "." + provenDBCollectionsKey
+	provenDBNameKey               = "name"
+	provenDBProofKey              = "proof"
+	provenDBHashKey               = "hash"
+	provenDBDocBranch             = "pdb_doc_branch"
 )
 
 type proofType string
