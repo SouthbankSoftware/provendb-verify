@@ -19,7 +19,7 @@
  * @Author: guiguan
  * @Date:   2019-04-02T13:39:00+11:00
  * @Last modified by:   guiguan
- * @Last modified time: 2019-04-02T13:39:42+11:00
+ * @Last modified time: 2019-07-09T17:12:22+10:00
  */
 
 package main
@@ -218,7 +218,8 @@ func saveProof(filename string, proof interface{}) (err error) {
 
 // getProof gets a Chainpoint Proof and its associated version stored in ProvenDB using either a
 // `proofId` (string) or a `versionId` (int64)
-func getProof(ctx context.Context, database *mongo.Database, id interface{}) (proof interface{}, version int64, err error) {
+func getProof(ctx context.Context, database *mongo.Database, id interface{}, colName string) (
+	proof interface{}, version int64, cols []string, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = r.(error)
@@ -238,18 +239,41 @@ func getProof(ctx context.Context, database *mongo.Database, id interface{}) (pr
 		return
 	}
 
+	filter := bsonx.Doc{
+		searchEl,
+		{provenDBStatusKey, bsonx.Document(bsonx.Doc{
+			{"$in", bsonx.Array(bsonx.Arr{
+				bsonx.String("submitted"),
+				bsonx.String("valid"),
+			})},
+		})},
+	}
+
+	if colName != "" {
+		// we have to make sure that the proof covers the given colName
+		filter = append(filter, bsonx.Elem{
+			"$or",
+			bsonx.Array(bsonx.Arr{
+				bsonx.Document(bsonx.Doc{{
+					provenDBScopeKey,
+					bsonx.String(provenDBScopeDatabase),
+				}}),
+				bsonx.Document(bsonx.Doc{{
+					provenDBDetailsCollectionsKey,
+					bsonx.Document(bsonx.Doc{
+						{"$elemMatch", bsonx.Document(bsonx.Doc{
+							{"name", bsonx.String(colName)},
+						})},
+					}),
+				}}),
+			}),
+		})
+	}
+
 	err = database.
 		Collection(provenDBVersionProofs).
 		FindOne(ctx,
-			bsonx.Doc{
-				searchEl,
-				{provenDBStatusKey, bsonx.Document(bsonx.Doc{
-					{"$in", bsonx.Array(bsonx.Arr{
-						bsonx.String("submitted"),
-						bsonx.String("valid"),
-					})},
-				})},
-			},
+			filter,
 			options.FindOne().
 				SetSort(bsonx.Doc{{provenDBSubmittedKey, bsonx.Int32(1)}}).
 				SetProjection(
@@ -257,13 +281,21 @@ func getProof(ctx context.Context, database *mongo.Database, id interface{}) (pr
 						{provenDBVersionKey, bsonx.Int32(1)},
 						{provenDBStatusKey, bsonx.Int32(1)},
 						{provenDBProofKey, bsonx.Int32(1)},
+						{provenDBDetailsKey, bsonx.Int32(1)},
+						{provenDBScopeKey, bsonx.Int32(1)},
 					},
 				),
 		).
 		Decode(&doc)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			err = fmt.Errorf("no proof with status `submitted` or `valid` can be found")
+			colMsg := ""
+
+			if colName != "" {
+				colMsg = fmt.Sprintf(" that covers collection `%s`", colName)
+			}
+
+			err = fmt.Errorf("no proof%s with status `submitted` or `valid` can be found", colMsg)
 		}
 		return
 	}
@@ -279,6 +311,37 @@ func getProof(ctx context.Context, database *mongo.Database, id interface{}) (pr
 	proof, err = binary.Binary2Proof(bytes.NewBuffer(proofBytes))
 	if err != nil {
 		return
+	}
+
+	scope, ok := doc.Lookup(provenDBScopeKey).StringValueOK()
+	if !ok {
+		err = fmt.Errorf("cannot get %s", provenDBScopeKey)
+		return
+	}
+
+	if scope == provenDBScopeCollection {
+		arr, ok := doc.Lookup(provenDBDetailsKey, provenDBCollectionsKey).ArrayOK()
+		if !ok {
+			err = fmt.Errorf("cannot get %s.%s", provenDBDetailsKey, provenDBCollectionsKey)
+			return
+		}
+
+		for _, val := range arr {
+			doc, ok := val.DocumentOK()
+			if !ok {
+				err = fmt.Errorf("invalid doc in %s.%s", provenDBDetailsKey,
+					provenDBCollectionsKey)
+				return
+			}
+
+			name, ok := doc.Lookup(provenDBNameKey).StringValueOK()
+			if !ok {
+				err = fmt.Errorf("cannot get %s", provenDBNameKey)
+				return
+			}
+
+			cols = append(cols, name)
+		}
 	}
 
 	return

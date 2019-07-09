@@ -19,7 +19,7 @@
  * @Author: guiguan
  * @Date:   2019-04-02T13:42:23+11:00
  * @Last modified by:   guiguan
- * @Last modified time: 2019-04-02T13:42:54+11:00
+ * @Last modified time: 2019-07-09T17:11:52+10:00
  */
 
 package main
@@ -60,7 +60,13 @@ type hashResult struct {
 	proofs []merkle.Proof
 }
 
-func hashDatabase(ctx context.Context, database *mongo.Database, version int64, proofMap map[string]map[string]*merkle.Proof) (result hashResult, err error) {
+func hashDatabase(
+	ctx context.Context,
+	database *mongo.Database,
+	version int64,
+	proofMap map[string]map[string]*merkle.Proof,
+	cols []string,
+) (result hashResult, err error) {
 	select {
 	case <-ctx.Done():
 		return result, ctx.Err()
@@ -70,15 +76,27 @@ func hashDatabase(ctx context.Context, database *mongo.Database, version int64, 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
+	colNameFilter := bsonx.Doc{
+		{"$not", bsonx.Regex(
+			"^"+provenDBMetaPrefix+"|^"+mongoDBSystemPrefix+"|"+provenDBIgnoredSuffix+"$",
+			"",
+		)},
+	}
+
+	if len(cols) > 0 {
+		vals := bsonx.Arr{}
+
+		for _, colName := range cols {
+			vals = append(vals, bsonx.String(colName))
+		}
+
+		colNameFilter = append(colNameFilter, bsonx.Elem{"$in", bsonx.Array(vals)})
+	}
+
 	// list normal collections
 	cur, err := database.ListCollections(ctx,
 		bsonx.Doc{
-			{"name", bsonx.Document(bsonx.Doc{
-				{"$not", bsonx.Regex(
-					"^"+provenDBMetaPrefix+"|^"+mongoDBSystemPrefix+"|"+provenDBIgnoredSuffix+"$",
-					"",
-				)},
-			})},
+			{"name", bsonx.Document(colNameFilter)},
 			{"type", bsonx.String("collection")},
 		},
 		options.ListCollections().SetNameOnly(true),
