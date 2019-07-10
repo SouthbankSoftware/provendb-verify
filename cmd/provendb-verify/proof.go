@@ -19,7 +19,7 @@
  * @Author: guiguan
  * @Date:   2019-04-02T13:39:00+11:00
  * @Last modified by:   guiguan
- * @Last modified time: 2019-07-09T17:12:22+10:00
+ * @Last modified time: 2019-07-10T17:12:33+10:00
  */
 
 package main
@@ -252,20 +252,11 @@ func getProof(ctx context.Context, database *mongo.Database, id interface{}, col
 	if colName != "" {
 		// we have to make sure that the proof covers the given colName
 		filter = append(filter, bsonx.Elem{
-			"$or",
-			bsonx.Array(bsonx.Arr{
-				bsonx.Document(bsonx.Doc{{
-					provenDBScopeKey,
-					bsonx.String(provenDBScopeDatabase),
-				}}),
-				bsonx.Document(bsonx.Doc{{
-					provenDBDetailsCollectionsKey,
-					bsonx.Document(bsonx.Doc{
-						{"$elemMatch", bsonx.Document(bsonx.Doc{
-							{"name", bsonx.String(colName)},
-						})},
-					}),
-				}}),
+			provenDBDetailsCollectionsKey,
+			bsonx.Document(bsonx.Doc{
+				{"$elemMatch", bsonx.Document(bsonx.Doc{
+					{"name", bsonx.String(colName)},
+				})},
 			}),
 		})
 	}
@@ -275,9 +266,13 @@ func getProof(ctx context.Context, database *mongo.Database, id interface{}, col
 		FindOne(ctx,
 			filter,
 			options.FindOne().
-				SetSort(bsonx.Doc{{provenDBSubmittedKey, bsonx.Int32(1)}}).
+				SetSort(bsonx.Doc{
+					{provenDBStatusKey, bsonx.Int32(-1)},
+					{provenDBSubmittedKey, bsonx.Int32(1)},
+				}).
 				SetProjection(
 					bsonx.Doc{
+						{provenDBProofIDKey, bsonx.Int32(1)},
 						{provenDBVersionKey, bsonx.Int32(1)},
 						{provenDBStatusKey, bsonx.Int32(1)},
 						{provenDBProofKey, bsonx.Int32(1)},
@@ -299,6 +294,8 @@ func getProof(ctx context.Context, database *mongo.Database, id interface{}, col
 		}
 		return
 	}
+
+	fmt.Printf("Loading Chainpoint Proof `%s`...\n", doc.Lookup(provenDBProofIDKey))
 
 	version, ok := doc.Lookup(provenDBVersionKey).Int64OK()
 	if !ok {
