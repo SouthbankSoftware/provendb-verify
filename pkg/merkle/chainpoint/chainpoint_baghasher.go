@@ -19,7 +19,7 @@
  * @Author: guiguan
  * @Date:   2018-08-02T09:41:56+10:00
  * @Last modified by:   guiguan
- * @Last modified time: 2019-04-02T13:25:09+11:00
+ * @Last modified time: 2019-08-26T16:29:25+10:00
  */
 
 package chainpoint
@@ -176,6 +176,53 @@ func (c *BagHasher) Patch(entries merkle.BagEntries, proofKeys ...[]byte) (hash 
 				HashCombiningAlgorithm: merkle.HCAS.Sha256,
 				Path:                   calcPathToRoot(n),
 			}
+		}
+	}
+
+	return hash, proofs
+}
+
+// PatchWithFullProofs initializes or reconstructs a Chainpoint merkle tree and returns proofs for
+// all entries
+func (c *BagHasher) PatchWithFullProofs(entries merkle.BagEntries) (
+	hash []byte, proofs []merkle.Proof) {
+	if len(entries) == 0 {
+		return
+	}
+
+	nodes := make([]*Node, len(entries))
+	proofNodes := make([]*Node, len(entries))
+
+	for i, entry := range entries {
+		key := entry[0]
+
+		n := &Node{
+			key:    key,
+			value:  entry[1],
+			height: 0,
+			size:   1,
+			hash:   entry[1],
+		}
+		nodes[i] = n
+		proofNodes[i] = n
+	}
+
+	for len(nodes) > 1 {
+		nodes = pairwiseCombine(nodes)
+	}
+
+	c.root = nodes[0]
+	hash = c.root.hash
+
+	proofs = make([]merkle.Proof, len(proofNodes))
+	for i, n := range proofNodes {
+		proofs[i] = merkle.Proof{
+			Key:                    n.key,
+			Value:                  n.value,
+			RootHash:               hash,
+			ValueHashAlgorithm:     merkle.VHAS.None,
+			HashCombiningAlgorithm: merkle.HCAS.Sha256,
+			Path:                   calcPathToRoot(n),
 		}
 	}
 

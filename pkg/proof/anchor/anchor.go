@@ -19,7 +19,7 @@
  * @Author: guiguan
  * @Date:   2018-08-24T09:56:10+10:00
  * @Last modified by:   guiguan
- * @Last modified time: 2019-04-02T14:12:10+11:00
+ * @Last modified time: 2019-09-02T17:36:03+10:00
  */
 
 package anchor
@@ -103,6 +103,10 @@ func verifyBranches(ctx context.Context, branches []interface{}) (er error) {
 		branch := branch.(map[string]interface{})
 
 		switch l := branch["label"]; l {
+		case "eth_anchor_branch":
+			eg.Go(func() error {
+				return verifyEthereumBranch(egCtx, branch)
+			})
 		case "btc_anchor_branch":
 			eg.Go(func() error {
 				return verifyBitcoinBranch(egCtx, branch)
@@ -143,6 +147,40 @@ func verifyCalendarBranch(ctx context.Context, branch map[string]interface{}) (e
 
 	if ShowProgress {
 		fmt.Println("Verifying Chainpoint anchor...")
+	}
+
+	anchors := branch["anchors"].([]interface{})
+
+	eg, egCtx := errgroup.WithContext(ctx)
+
+	for _, anchor := range anchors {
+		anchor := anchor.(map[string]interface{})
+		uris := anchor["uris"].([]interface{})
+		expectedValue := anchor["expected_value"].(string)
+
+		eg.Go(func() (er error) {
+			return verifyAnchorURIs(egCtx, uris, expectedValue)
+		})
+	}
+
+	return eg.Wait()
+}
+
+func verifyEthereumBranch(ctx context.Context, branch map[string]interface{}) (er error) {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			er = status.NewVerificationStatusError(status.VerificationStatusFalsified, r.(error))
+		}
+	}()
+
+	if ShowProgress {
+		fmt.Println("Verifying Ethereum anchor...")
 	}
 
 	anchors := branch["anchors"].([]interface{})

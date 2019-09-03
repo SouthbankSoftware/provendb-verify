@@ -19,7 +19,7 @@
  * @Author: guiguan
  * @Date:   2019-04-02T13:39:00+11:00
  * @Last modified by:   guiguan
- * @Last modified time: 2019-07-10T17:12:33+10:00
+ * @Last modified time: 2019-08-28T16:31:55+10:00
  */
 
 package main
@@ -173,7 +173,7 @@ func loadProof(filename string) (proof interface{}, err error) {
 			return
 		}
 	} else {
-		proof, err = binary.Base642Proof(f)
+		err = binary.Base642Proof(f, &proof)
 		if err != nil {
 			return
 		}
@@ -305,7 +305,7 @@ func getProof(ctx context.Context, database *mongo.Database, id interface{}, col
 
 	_, proofBytes := doc.Lookup(provenDBProofKey).Binary()
 
-	proof, err = binary.Binary2Proof(bytes.NewBuffer(proofBytes))
+	err = binary.Binary2Proof(bytes.NewBuffer(proofBytes), &proof)
 	if err != nil {
 		return
 	}

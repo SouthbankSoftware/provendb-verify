@@ -19,7 +19,7 @@
  * @Author: guiguan
  * @Date:   2018-08-17T10:48:15+10:00
  * @Last modified by:   guiguan
- * @Last modified time: 2019-04-02T13:32:13+11:00
+ * @Last modified time: 2019-08-28T16:34:15+10:00
  */
 
 package proof
@@ -42,7 +42,8 @@ func Verify(ctx context.Context, rawProof interface{}) (st status.VerificationSt
 
 	switch p := rawProof.(type) {
 	case io.Reader:
-		pf, err := binary.Base642Proof(p)
+		var pf interface{}
+		err := binary.Base642Proof(p, &pf)
 		if err != nil {
 			er = err
 			return
