@@ -19,7 +19,7 @@
  * @Author: guiguan
  * @Date:   2018-08-28T11:26:28+10:00
  * @Last modified by:   guiguan
- * @Last modified time: 2019-04-02T13:26:10+11:00
+ * @Last modified time: 2019-08-28T16:33:29+10:00
  */
 
 package binary
@@ -68,7 +68,8 @@ func TestBase642Proof(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotProof, err := Base642Proof(tt.args.r)
+			var gotProof interface{}
+			err := Base642Proof(tt.args.r, &gotProof)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Base642Proof() error = %v, wantErr %v", err, tt.wantErr)
@@ -85,12 +86,14 @@ func isEqualBase64(t *testing.T, a, b string) bool {
 	bufA := bytes.NewBufferString(a)
 	bufB := bytes.NewBufferString(b)
 
-	proofA, err := Base642Proof(bufA)
+	var proofA, proofB interface{}
+
+	err := Base642Proof(bufA, &proofA)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	proofB, err := Base642Proof(bufB)
+	err = Base642Proof(bufB, &proofB)
 	if err != nil {
 		t.Fatal(err)
 	}

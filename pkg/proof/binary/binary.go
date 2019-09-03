@@ -19,7 +19,7 @@
  * @Author: guiguan
  * @Date:   2018-08-28T11:26:28+10:00
  * @Last modified by:   guiguan
- * @Last modified time: 2019-04-02T13:26:22+11:00
+ * @Last modified time: 2019-08-28T16:16:24+10:00
  */
 
 package binary
@@ -33,26 +33,21 @@ import (
 )
 
 // Binary2Proof reads a binary stream into a Chainpoint Proof
-func Binary2Proof(r io.Reader) (proof interface{}, err error) {
+func Binary2Proof(r io.Reader, v interface{}) error {
 	msgpackR, err := zlib.NewReader(r)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	defer msgpackR.Close()
 
-	err = msgpack.NewDecoder(msgpackR).Decode(&proof)
-	if err != nil {
-		return nil, err
-	}
-
-	return proof, nil
+	return msgpack.NewDecoder(msgpackR).UseJSONTag(true).Decode(v)
 }
 
 // Base642Proof reads a base64 binary stream into a Chainpoint Proof
-func Base642Proof(r io.Reader) (proof interface{}, err error) {
+func Base642Proof(r io.Reader, v interface{}) error {
 	zlibR := base64.NewDecoder(base64.StdEncoding, r)
-	return Binary2Proof(zlibR)
+	return Binary2Proof(zlibR, v)
 }
 
 // Proof2Binary writes a Chainpoint Proof into a binary stream
@@ -61,7 +56,7 @@ func Proof2Binary(proof interface{}, w io.Writer) (err error) {
 
 	defer msgpackW.Close()
 
-	err = msgpack.NewEncoder(msgpackW).Encode(&proof)
+	err = msgpack.NewEncoder(msgpackW).UseJSONTag(true).Encode(&proof)
 	if err != nil {
 		return err
 	}
