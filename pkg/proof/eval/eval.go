@@ -19,7 +19,7 @@
  * @Author: guiguan
  * @Date:   2018-08-22T13:22:09+10:00
  * @Last modified by:   guiguan
- * @Last modified time: 2019-04-02T13:27:12+11:00
+ * @Last modified time: 2019-11-14T14:55:27+11:00
  */
 
 package eval
@@ -30,11 +30,16 @@ import (
 	"encoding/hex"
 	"fmt"
 	"hash"
-
-	"golang.org/x/crypto/sha3"
+	"strings"
 
 	"github.com/SouthbankSoftware/provendb-verify/pkg/proof/queue"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/crypto/sha3"
+)
+
+const (
+	// SignaturePrefix is the prefix for the signature entry in a proof
+	SignaturePrefix = "sig:"
 )
 
 // Eval evaluates given Proof JSON and calculate anchor infos such as merkle root
@@ -87,15 +92,26 @@ func Branch(startHash []byte, branch map[string]interface{}) (resultBranch map[s
 		}
 	}
 
+	checkSig := func(operand string) {
+		if strings.HasPrefix(operand, SignaturePrefix) {
+			resultBranch["sig"] = operand[len(SignaturePrefix):]
+			resultBranch["sigHash"] = hex.EncodeToString(currHash)
+		}
+	}
+
 	currBranchOps := branch["ops"].([]interface{})
 
 	for j := 0; j < len(currBranchOps); j++ {
 		currBranchOp := currBranchOps[j].(map[string]interface{})
 
 		if r := currBranchOp["r"]; r != nil {
-			currHash = append(currHash, str2ByteArray(r.(string))...)
+			op := r.(string)
+			checkSig(op)
+			currHash = append(currHash, str2ByteArray(op)...)
 		} else if l := currBranchOp["l"]; l != nil {
-			currHash = append(str2ByteArray(l.(string)), currHash...)
+			op := l.(string)
+			checkSig(op)
+			currHash = append(str2ByteArray(op), currHash...)
 		} else if op := currBranchOp["op"]; op != nil {
 			switch algo := op.(string); algo {
 			case "sha-224":
