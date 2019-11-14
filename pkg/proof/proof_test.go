@@ -19,7 +19,7 @@
  * @Author: guiguan
  * @Date:   2018-08-17T10:48:15+10:00
  * @Last modified by:   guiguan
- * @Last modified time: 2019-04-02T13:32:02+11:00
+ * @Last modified time: 2019-11-14T14:59:38+11:00
  */
 
 package proof
@@ -101,7 +101,7 @@ func TestVerify(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotSt, err := Verify(tt.args.ctx, tt.args.rawProof)
+			gotSt, _, err := Verify(tt.args.ctx, tt.args.rawProof)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Verify() error = %v, wantErr %v", err, tt.wantErr)
 				return

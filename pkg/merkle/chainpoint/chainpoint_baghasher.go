@@ -19,7 +19,7 @@
  * @Author: guiguan
  * @Date:   2018-08-02T09:41:56+10:00
  * @Last modified by:   guiguan
- * @Last modified time: 2019-08-26T16:29:25+10:00
+ * @Last modified time: 2019-11-12T15:55:02+11:00
  */
 
 package chainpoint
@@ -34,25 +34,25 @@ import (
 
 // Node represents a tree node in hasher
 type Node struct {
-	key       []byte
-	value     []byte
-	height    int8
-	size      int64
-	hash      []byte
-	leftHash  []byte
-	rightHash []byte
-	parent    *Node
+	Key       []byte
+	Value     []byte
+	Height    int8
+	Size      int64
+	Hash      []byte
+	LeftHash  []byte
+	RightHash []byte
+	Parent    *Node
 }
 
 // BagHasher represents an instance of Chainpoint merkle tree based hasher
 type BagHasher struct {
-	root *Node
+	Root *Node
 }
 
 // NewBagHasher returns a new Chainpoint merkle tree based hasher
 func NewBagHasher() *BagHasher {
 	return &BagHasher{
-		root: nil,
+		Root: nil,
 	}
 }
 
@@ -63,7 +63,8 @@ func max(i, j int8) int8 {
 	return j
 }
 
-func pairwiseCombine(nodes []*Node) []*Node {
+// PairwiseCombine combines a layer of merkle nodes and returns one layer above the bottom layer
+func PairwiseCombine(nodes []*Node) []*Node {
 	resultNodes := make([]*Node, int(math.Ceil(float64(len(nodes))/2.0)))
 
 	for i := range resultNodes {
@@ -78,16 +79,16 @@ func pairwiseCombine(nodes []*Node) []*Node {
 			nodeK := nodes[k]
 
 			resultNodes[i] = &Node{
-				height:    1 + max(nodeJ.height, nodeK.height),
-				size:      1 + nodeJ.size + nodeK.size,
-				hash:      hasher.HashByteArray(nodeJ.hash, nodeK.hash),
-				leftHash:  nodeJ.hash,
-				rightHash: nodeK.hash,
+				Height:    1 + max(nodeJ.Height, nodeK.Height),
+				Size:      1 + nodeJ.Size + nodeK.Size,
+				Hash:      hasher.HashByteArray(nodeJ.Hash, nodeK.Hash),
+				LeftHash:  nodeJ.Hash,
+				RightHash: nodeK.Hash,
 			}
 
 			parent := resultNodes[i]
-			nodeJ.parent = parent
-			nodeK.parent = parent
+			nodeJ.Parent = parent
+			nodeK.Parent = parent
 		} else {
 			resultNodes[i] = nodeJ
 		}
@@ -99,15 +100,15 @@ func pairwiseCombine(nodes []*Node) []*Node {
 func calcPathToRoot(node *Node) []merkle.PathNode {
 	var path []merkle.PathNode
 
-	for node.parent != nil {
-		parent := node.parent
+	for node.Parent != nil {
+		parent := node.Parent
 
 		var pathNode merkle.PathNode
 
-		if bytes.Compare(node.hash, parent.leftHash) == 0 {
-			pathNode.RightHash = parent.rightHash
+		if bytes.Compare(node.Hash, parent.LeftHash) == 0 {
+			pathNode.RightHash = parent.RightHash
 		} else {
-			pathNode.LeftHash = parent.leftHash
+			pathNode.LeftHash = parent.LeftHash
 		}
 
 		path = append(path, pathNode)
@@ -142,11 +143,11 @@ func (c *BagHasher) Patch(entries merkle.BagEntries, proofKeys ...[]byte) (hash 
 		key := entry[0]
 
 		nodes[i] = &Node{
-			key:    key,
-			value:  entry[1],
-			height: 0,
-			size:   1,
-			hash:   entry[1],
+			Key:    key,
+			Value:  entry[1],
+			Height: 0,
+			Size:   1,
+			Hash:   entry[1],
 		}
 
 		if len(proofKeySet) != 0 {
@@ -159,74 +160,66 @@ func (c *BagHasher) Patch(entries merkle.BagEntries, proofKeys ...[]byte) (hash 
 	}
 
 	for len(nodes) > 1 {
-		nodes = pairwiseCombine(nodes)
+		nodes = PairwiseCombine(nodes)
 	}
 
-	c.root = nodes[0]
-	hash = c.root.hash
+	c.Root = nodes[0]
+	hash = c.Root.Hash
 
 	if len(proofNodes) > 0 {
 		proofs = make([]merkle.Proof, len(proofNodes))
 		for i, n := range proofNodes {
-			proofs[i] = merkle.Proof{
-				Key:                    n.key,
-				Value:                  n.value,
-				RootHash:               hash,
-				ValueHashAlgorithm:     merkle.VHAS.None,
-				HashCombiningAlgorithm: merkle.HCAS.Sha256,
-				Path:                   calcPathToRoot(n),
-			}
+			proofs[i] = c.NodeToProof(n)
 		}
 	}
 
 	return hash, proofs
 }
 
-// PatchWithFullProofs initializes or reconstructs a Chainpoint merkle tree and returns proofs for
-// all entries
-func (c *BagHasher) PatchWithFullProofs(entries merkle.BagEntries) (
-	hash []byte, proofs []merkle.Proof) {
+// Create creates a Chainpoint merkle tree
+func (c *BagHasher) Create(entries merkle.BagEntries) (
+	hash []byte, leaves []*Node) {
 	if len(entries) == 0 {
 		return
 	}
 
-	nodes := make([]*Node, len(entries))
-	proofNodes := make([]*Node, len(entries))
+	buffer := make([]*Node, len(entries))
+	leaves = make([]*Node, len(entries))
 
 	for i, entry := range entries {
 		key := entry[0]
 
 		n := &Node{
-			key:    key,
-			value:  entry[1],
-			height: 0,
-			size:   1,
-			hash:   entry[1],
+			Key:    key,
+			Value:  entry[1],
+			Height: 0,
+			Size:   1,
+			Hash:   entry[1],
 		}
-		nodes[i] = n
-		proofNodes[i] = n
+		buffer[i] = n
+		leaves[i] = n
 	}
 
-	for len(nodes) > 1 {
-		nodes = pairwiseCombine(nodes)
+	for len(buffer) > 1 {
+		buffer = PairwiseCombine(buffer)
 	}
 
-	c.root = nodes[0]
-	hash = c.root.hash
+	c.Root = buffer[0]
+	hash = c.Root.Hash
 
-	proofs = make([]merkle.Proof, len(proofNodes))
-	for i, n := range proofNodes {
-		proofs[i] = merkle.Proof{
-			Key:                    n.key,
-			Value:                  n.value,
-			RootHash:               hash,
-			ValueHashAlgorithm:     merkle.VHAS.None,
-			HashCombiningAlgorithm: merkle.HCAS.Sha256,
-			Path:                   calcPathToRoot(n),
-		}
+	return
+}
+
+// NodeToProof converts a merkle tree leaf node into a merkle proof
+func (c *BagHasher) NodeToProof(node *Node) merkle.Proof {
+	return merkle.Proof{
+		Key:                    node.Key,
+		Value:                  node.Value,
+		RootHash:               c.Root.Hash,
+		ValueHashAlgorithm:     merkle.VHAS.None,
+		HashCombiningAlgorithm: merkle.HCAS.Sha256,
+		Path:                   calcPathToRoot(node),
 	}
-
-	return hash, proofs
 }
 
 // SaveVersion is not implemented
@@ -251,10 +244,10 @@ func (c *BagHasher) GetLatestProofs(keys ...[]byte) (proofs []merkle.Proof) {
 
 // Height returns the height of the Chainpoint merkle tree
 func (c *BagHasher) Height() (height int) {
-	return int(c.root.height)
+	return int(c.Root.Height)
 }
 
 // Size returns the size of the Chainpoint merkle tree
 func (c *BagHasher) Size() (size int) {
-	return int(c.root.size)
+	return int(c.Root.Size)
 }

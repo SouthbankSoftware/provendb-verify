@@ -19,7 +19,7 @@
  * @Author: guiguan
  * @Date:   2018-08-17T10:48:15+10:00
  * @Last modified by:   guiguan
- * @Last modified time: 2019-08-28T16:34:15+10:00
+ * @Last modified time: 2019-11-14T14:59:15+11:00
  */
 
 package proof
@@ -37,7 +37,8 @@ import (
 )
 
 // Verify verifies a given Chainpoint Proof in either base64 binary string or JSON interface{}
-func Verify(ctx context.Context, rawProof interface{}) (st status.VerificationStatus, er error) {
+func Verify(ctx context.Context, rawProof interface{}) (
+	st status.VerificationStatus, evaledPf map[string]interface{}, er error) {
 	var proof interface{}
 
 	switch p := rawProof.(type) {
@@ -82,5 +83,7 @@ func Verify(ctx context.Context, rawProof interface{}) (st status.VerificationSt
 		return
 	}
 
-	return status.VerificationStatusVerified, nil
+	st = status.VerificationStatusVerified
+	evaledPf = evaluatedProof
+	return
 }
