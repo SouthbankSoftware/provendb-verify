@@ -19,7 +19,7 @@
  * @Author: guiguan
  * @Date:   2018-08-24T09:56:10+10:00
  * @Last modified by:   guiguan
- * @Last modified time: 2019-04-02T13:25:43+11:00
+ * @Last modified time: 2019-12-04T18:10:46+11:00
  */
 
 package anchor
@@ -103,7 +103,7 @@ func Test_verifyAnchorURIs(t *testing.T) {
 				},
 				"",
 			},
-			`got 404 Not Found from https://a.chainpoint.org/notexists`,
+			`got 404 Not Found from https://a.chainpoint.org/notexists: {"code":"ResourceNotFound","message":"/notexists does not exist"}`,
 		},
 	}
 	for _, tt := range tests {
@@ -263,7 +263,7 @@ func Test_verifyCalendarBranch(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := verifyCalendarBranch(tt.args.ctx, tt.args.branch); (err != nil) != tt.wantErr {
+			if err := verifyBranch(tt.args.ctx, tt.args.branch, "cal_anchor_branch"); (err != nil) != tt.wantErr {
 				t.Errorf("verifyCalendarBranch() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
