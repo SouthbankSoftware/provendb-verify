@@ -100,6 +100,12 @@ resources:
       bucket: provendb-dev
       json_key: ((common.service-account))
       versioned_file: provendb-verify/provendb-verify_windows_amd64.exe
+  - name: docker-registry
+    type: docker-image
+    source:
+      repository: asia.gcr.io/provendb/provendb-verify
+      username: _json_key
+      password: ((common.service-account))    
 
 jobs:
   - name: build-and-deploy
@@ -127,6 +133,11 @@ jobs:
             params:
               file: provendb-verify/provendb-verify_windows_amd64.exe
               predefined_acl: publicRead
+      - put: docker-registry
+        params:
+          build: provendb-verify
+          tag_file: version/number
+        get_params: { skip_download: true }         
       - get: meta
       - get: provendb-releases
       - task: save-build-info
