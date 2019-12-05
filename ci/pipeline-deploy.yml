@@ -137,6 +137,7 @@ jobs:
         params:
           build: provendb-verify
           tag_file: version/number
+          tag_as_latest: true
         get_params: { skip_download: true }         
       - get: meta
       - get: provendb-releases
