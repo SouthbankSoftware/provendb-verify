@@ -141,6 +141,7 @@ jobs:
         get_params: { skip_download: true }         
       - get: meta
       - get: provendb-releases
+        params: {clean_tags: true}
       - task: save-build-info
         file: provendb-verify/ci/task-save-build-info/task-save-build-info.yml
       - put: provendb-releases
