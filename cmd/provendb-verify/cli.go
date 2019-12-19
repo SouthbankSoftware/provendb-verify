@@ -19,18 +19,21 @@
  * @Author: guiguan
  * @Date:   2019-04-02T13:35:55+11:00
  * @Last modified by:   guiguan
- * @Last modified time: 2019-07-09T16:52:03+10:00
+ * @Last modified time: 2019-12-19T22:08:55+11:00
  */
 
 package main
 
 import (
 	"context"
+	"crypto/rsa"
 	"fmt"
+	"io/ioutil"
 	"path/filepath"
 	"strconv"
 	"strings"
 
+	"github.com/SouthbankSoftware/provenlogs/pkg/rsakey"
 	"github.com/fatih/color"
 	"github.com/mongodb/mongo-go-driver/mongo"
 	"github.com/mongodb/mongo-go-driver/mongo/options"
@@ -38,6 +41,18 @@ import (
 	log "github.com/sirupsen/logrus"
 	cli "gopkg.in/urfave/cli.v2"
 )
+
+type outOpt struct {
+	path string
+}
+
+type docOpt struct {
+	colName   string
+	docFilter string
+	calcHash  bool
+}
+
+type pubKeyOpt *rsa.PublicKey
 
 func handleCLI(c *cli.Context) int {
 	if c.Bool("help") {
@@ -138,6 +153,22 @@ func handleCLI(c *cli.Context) int {
 		versionID = int64(vNum)
 	}
 
+	var pubKeyOpt pubKeyOpt
+
+	if v := c.String("pubKey"); v != "" {
+		pubPEM, err := ioutil.ReadFile(v)
+		if err != nil {
+			return cliErrorf("invalid '--pubKey': %s", err)
+		}
+
+		pub, err := rsakey.ImportPublicKeyFromPEM(pubPEM)
+		if err != nil {
+			return cliErrorf("invalid '--pubKey': %s", err)
+		}
+
+		pubKeyOpt = pub
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -145,7 +176,7 @@ func handleCLI(c *cli.Context) int {
 
 	if in := c.String("in"); in != "" {
 		if strings.HasSuffix(in, ".zip") {
-			msg, err := verifyProofArchive(ctx, in)
+			msg, err := verifyProofArchive(ctx, in, pubKeyOpt)
 			if err != nil {
 				return cliFalsifiedf("%s:\n\t%s", msg, err)
 			}
@@ -248,6 +279,10 @@ func handleCLI(c *cli.Context) int {
 				return cliErrorf("cannot get Chainpoint Proof using %s %v: %s", provenDBVersionKey, versionID, err)
 			}
 		}
+	}
+
+	if pubKeyOpt != nil {
+		opts = append(opts, pubKeyOpt)
 	}
 
 	msg, err := verifyProof(ctx, database, proof, versionID, cols, opts...)
