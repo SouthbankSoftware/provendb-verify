@@ -19,7 +19,7 @@
  * @Author: guiguan
  * @Date:   2018-08-01T13:23:16+10:00
  * @Last modified by:   guiguan
- * @Last modified time: 2019-07-09T17:11:07+10:00
+ * @Last modified time: 2019-12-19T18:44:30+11:00
  */
 
 package main
@@ -181,6 +181,10 @@ COPYRIGHT:
 				Name:    "in",
 				Aliases: []string{"i"},
 				Usage:   wrap("specify a `PATH` to a ProvenDB Proof Archive (.zip) or an external Chainpoint Proof either in base64 (.txt) or JSON (.json). The (.txt) or (.json) will be used to verify the database or document, instead of using the stored one in ProvenDB. If the database or document is not specified, the (.txt) or (.json) itself will only be verified. You can use '--out' to output such (.txt) or (.json)"),
+			},
+			&cli.StringFlag{
+				Name:	"pubKey",
+				Usage: wrap("specify a `PATH` to a RSA public key (.pem) to verify the signature contained in a Proof"),
 			},
 			&cli.BoolFlag{
 				Name:    "listVersions",

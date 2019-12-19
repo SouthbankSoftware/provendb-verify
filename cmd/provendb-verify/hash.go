@@ -19,7 +19,7 @@
  * @Author: guiguan
  * @Date:   2019-04-02T13:42:23+11:00
  * @Last modified by:   guiguan
- * @Last modified time: 2019-07-09T17:11:52+10:00
+ * @Last modified time: 2019-12-19T20:27:45+11:00
  */
 
 package main
@@ -42,15 +42,6 @@ import (
 	"github.com/vbauerster/mpb"
 	"github.com/vbauerster/mpb/decor"
 )
-
-type outOpt struct {
-	path string
-}
-type docOpt struct {
-	colName   string
-	docFilter string
-	calcHash  bool
-}
 
 type hashResult struct {
 	name   string

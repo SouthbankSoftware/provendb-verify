@@ -19,7 +19,7 @@
  * @Author: guiguan
  * @Date:   2019-04-02T13:37:34+11:00
  * @Last modified by:   guiguan
- * @Last modified time: 2019-07-09T15:15:25+10:00
+ * @Last modified time: 2019-12-19T22:32:03+11:00
  */
 
 package main
@@ -28,8 +28,10 @@ import (
 	"archive/zip"
 	"bytes"
 	"context"
+	"crypto/rsa"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"strings"
@@ -39,13 +41,17 @@ import (
 	"github.com/SouthbankSoftware/provendb-verify/pkg/proof/eval"
 	"github.com/SouthbankSoftware/provendb-verify/pkg/proof/schema"
 	"github.com/SouthbankSoftware/provendb-verify/pkg/proof/status"
+	"github.com/SouthbankSoftware/provenlogs/pkg/rsasig"
 	"github.com/mongodb/mongo-go-driver/bson"
 	"github.com/mongodb/mongo-go-driver/mongo"
 	"github.com/mongodb/mongo-go-driver/x/bsonx"
 )
 
-func verifyProofArchive(ctx context.Context, filename string) (msg string, er error) {
+func verifyProofArchive(ctx context.Context, filename string, pub pubKeyOpt) (
+	msg string, er error) {
 	fmt.Printf("Loading ProvenDB Proof Archive `%s`...\n", filename)
+
+	pubKey := (*rsa.PublicKey)(pub)
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -156,6 +162,14 @@ func verifyProofArchive(ctx context.Context, filename string) (msg string, er er
 		return
 	}
 
+	if pubKey != nil {
+		_, err := verifyBranchSignatrues(evaluatedProof, pubKey)
+		if err != nil {
+			er = err
+			return
+		}
+	}
+
 	err = anchor.Verify(ctx, evaluatedProof)
 	if err != nil {
 		er = err
@@ -177,6 +191,7 @@ func verifyProof(
 		inProofType, outProofType proofType
 		proofName, outPath        string
 		proofDocOpt               *docOpt
+		pubKey                    *rsa.PublicKey
 	)
 
 	if database != nil {
@@ -196,6 +211,8 @@ func verifyProof(
 				proofName = fmt.Sprintf("in `%s` with filter `%s`", o.colName, o.docFilter)
 				proofDocOpt = &o
 			}
+		case pubKeyOpt:
+			pubKey = o
 		}
 	}
 
@@ -331,6 +348,22 @@ func verifyProof(
 		return
 	}
 
+	if pubKey != nil {
+		verifiable, er := verifyBranchSignatrues(evaluatedProof, pubKey)
+		if er != nil {
+			var s status.VerificationStatus
+
+			if verifiable {
+				s = status.VerificationStatusFalsified
+			} else {
+				s = status.VerificationStatusUnverifiable
+			}
+
+			err = status.NewVerificationStatusError(s, er)
+			return
+		}
+	}
+
 	err = anchor.Verify(ctx, evaluatedProof)
 	if err != nil {
 		return
@@ -353,5 +386,94 @@ func verifyProof(
 		}
 	}
 
+	return
+}
+
+func verifyBranchSignatrues(evaledPf map[string]interface{}, pub *rsa.PublicKey) (
+	verifiable bool, er error) {
+	defer func() {
+		if r := recover(); r != nil {
+			verifiable = true
+			er = fmt.Errorf("invalid evaluated proof: %w", r.(error))
+			return
+		}
+	}()
+
+	fmt.Println("Verifying Chainpoint Proof signature...")
+
+	var verify func(branches []interface{}) (
+		verifiable bool, hasSig bool, er error)
+
+	verify = func(branches []interface{}) (
+		verifiable bool, hasSig bool, er error) {
+		for _, bI := range branches {
+			b := bI.(map[string]interface{})
+
+			if val, ok := b["sig"]; ok {
+				// contains a signature, do further checking
+				if sigStr, ok := val.(string); ok && sigStr != "" {
+					if val, ok := b["sigHash"]; ok {
+						if str, ok := val.(string); ok && str != "" {
+							hash, err := hex.DecodeString(str)
+							if err != nil {
+								verifiable = true
+								er = fmt.Errorf("cannot decode `sigHash` in branch `%s`: %w",
+									b["label"], err)
+								return
+							}
+
+							vr, err := rsasig.Verify(hash, sigStr, pub)
+							if err != nil {
+								if vr {
+									verifiable = true
+									er = fmt.Errorf("falsified signature in branch `%s`: %w",
+										b["label"], err)
+									return
+								}
+
+								er = fmt.Errorf("cannot verify signature in branch `%s`: %w",
+									b["label"], err)
+								return
+							}
+
+							hasSig = true
+						} else {
+							verifiable = true
+							er = fmt.Errorf("invalid `sigHash` in branch `%s`", b["label"])
+							return
+						}
+					} else {
+						verifiable = true
+						er = fmt.Errorf("`sigHash` is missing in branch `%s`", b["label"])
+						return
+					}
+				} else {
+					verifiable = true
+					er = fmt.Errorf("invalid `sig` in branch `%s`", b["label"])
+					return
+				}
+			}
+
+			if cb, ok := b["branches"]; ok {
+				v, h, err := verify(cb.([]interface{}))
+				if err != nil {
+					verifiable = v
+					er = err
+					return
+				}
+
+				hasSig = hasSig || h
+			}
+		}
+
+		verifiable = true
+		return
+	}
+
+	verifiable, hasSig, er := verify(evaledPf["branches"].([]interface{}))
+	if verifiable && er == nil && !hasSig {
+		er = errors.New("signature is missing")
+		return
+	}
 	return
 }
