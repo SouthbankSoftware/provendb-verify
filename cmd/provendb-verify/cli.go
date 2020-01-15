@@ -18,8 +18,8 @@
  *
  * @Author: guiguan
  * @Date:   2019-04-02T13:35:55+11:00
- * @Last modified by:   guiguan
- * @Last modified time: 2019-12-19T22:08:55+11:00
+ * @Last modified by:   Michael Harrison
+ * @Last modified time: 2020-01-15T09:30:49+11:00
  */
 
 package main
@@ -44,6 +44,10 @@ import (
 
 type outOpt struct {
 	path string
+}
+
+type ignoredCollectionsOpt struct {
+	ignoredCollections []string
 }
 
 type docOpt struct {
@@ -250,6 +254,13 @@ func handleCLI(c *cli.Context) int {
 
 			opts = append(opts, outOpt{
 				out,
+			})
+		}
+
+		if ignoredCollections := c.String("ignoredCollections"); ignoredCollections != "" {
+
+			opts = append(opts, ignoredCollectionsOpt{
+				ignoredCollections: strings.Split(ignoredCollections, ","),
 			})
 		}
 
