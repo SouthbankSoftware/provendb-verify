@@ -19,7 +19,7 @@
  * @Author: guiguan
  * @Date:   2018-08-01T13:23:16+10:00
  * @Last modified by:   Michael Harrison
- * @Last modified time: 2020-01-15T09:22:32+11:00
+ * @Last modified time: 2020-01-17T12:00:59+11:00
  */
 
 package main
@@ -156,7 +156,7 @@ COPYRIGHT:
 				Aliases: []string{"p"},
 				Usage:   wrap("specify a `PASSWORD` for the MongoDB authentication"),
 			},
-			&cli.BoolFlag{
+			&cli.StringSliceFlag{
 				Name:        "ignoredCollections",
 				Usage:       wrap("Ignore a comma seperated list of values when verifying proofs."),
 				DefaultText: "",

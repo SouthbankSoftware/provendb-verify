@@ -19,7 +19,7 @@
  * @Author: guiguan
  * @Date:   2019-04-02T13:35:55+11:00
  * @Last modified by:   Michael Harrison
- * @Last modified time: 2020-01-15T09:30:49+11:00
+ * @Last modified time: 2020-01-17T12:01:33+11:00
  */
 
 package main
@@ -257,10 +257,10 @@ func handleCLI(c *cli.Context) int {
 			})
 		}
 
-		if ignoredCollections := c.String("ignoredCollections"); ignoredCollections != "" {
+		if ignoredCollections := c.StringSlice("ignoredCollections"); ignoredCollections != nil {
 
 			opts = append(opts, ignoredCollectionsOpt{
-				ignoredCollections: strings.Split(ignoredCollections, ","),
+				ignoredCollections,
 			})
 		}
 
