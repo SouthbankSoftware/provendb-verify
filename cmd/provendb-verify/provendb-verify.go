@@ -158,7 +158,7 @@ COPYRIGHT:
 			},
 			&cli.StringSliceFlag{
 				Name:        "ignoredCollections",
-				Usage:       wrap("Ignore a comma seperated list of values when verifying proofs."),
+				Usage:       wrap("specify a comma seperated list of ignored collections"),
 				DefaultText: "",
 			},
 			&cli.StringFlag{
