@@ -18,8 +18,8 @@
  *
  * @Author: guiguan
  * @Date:   2019-04-02T13:42:23+11:00
- * @Last modified by:   guiguan
- * @Last modified time: 2019-12-19T20:27:45+11:00
+ * @Last modified by:   Michael Harrison
+ * @Last modified time: 2020-01-15T09:41:19+11:00
  */
 
 package main
@@ -57,6 +57,7 @@ func hashDatabase(
 	version int64,
 	proofMap map[string]map[string]*merkle.Proof,
 	cols []string,
+	ignoredCollections []string,
 ) (result hashResult, err error) {
 	select {
 	case <-ctx.Done():
@@ -67,9 +68,14 @@ func hashDatabase(
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
+	ignoredCollectionsRegex := ""
+	for _, collection := range ignoredCollections {
+		ignoredCollectionsRegex += "^" + collection + "$|"
+	}
+
 	colNameFilter := bsonx.Doc{
 		{"$not", bsonx.Regex(
-			"^"+provenDBMetaPrefix+"|^"+mongoDBSystemPrefix+"|"+provenDBIgnoredSuffix+"$",
+			"^"+provenDBMetaPrefix+"|^"+mongoDBSystemPrefix+"|"+ignoredCollectionsRegex+provenDBIgnoredSuffix+"$",
 			"",
 		)},
 	}

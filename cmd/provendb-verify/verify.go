@@ -18,8 +18,8 @@
  *
  * @Author: guiguan
  * @Date:   2019-04-02T13:37:34+11:00
- * @Last modified by:   guiguan
- * @Last modified time: 2019-12-19T22:32:03+11:00
+ * @Last modified by:   Michael Harrison
+ * @Last modified time: 2020-01-15T09:40:28+11:00
  */
 
 package main
@@ -192,6 +192,7 @@ func verifyProof(
 		proofName, outPath        string
 		proofDocOpt               *docOpt
 		pubKey                    *rsa.PublicKey
+		ignoredCollections        []string
 	)
 
 	if database != nil {
@@ -213,6 +214,8 @@ func verifyProof(
 			}
 		case pubKeyOpt:
 			pubKey = o
+		case ignoredCollectionsOpt:
+			ignoredCollections = o.ignoredCollections
 		}
 	}
 
@@ -318,7 +321,7 @@ func verifyProof(
 		}
 
 		if actualHash == nil {
-			hr, err = hashDatabase(ctx, database, version, proofMap, cols)
+			hr, err = hashDatabase(ctx, database, version, proofMap, cols, ignoredCollections)
 			if err != nil {
 				return
 			}
