@@ -58,6 +58,7 @@ func hashDatabase(
 	proofMap map[string]map[string]*merkle.Proof,
 	cols []string,
 	ignoredCollections []string,
+	filterStr string,
 ) (result hashResult, err error) {
 	select {
 	case <-ctx.Done():
@@ -108,7 +109,7 @@ func hashDatabase(
 	count := 0
 
 	asyncHashCol := func(collection *mongo.Collection, proofKeys ...[]byte) {
-		result, err := hashCollection(ctx, collection, version, proofKeys...)
+		result, err := hashCollection(ctx, collection, version, filterStr, proofKeys...)
 		if err != nil {
 			select {
 			case <-ctx.Done():
@@ -200,7 +201,7 @@ func hashDatabase(
 				count--
 
 				if !debug {
-					bar.SetTotal(int64(count), false)
+					bar.SetTotal(int64(count + 1), false)
 				}
 
 				// skip
@@ -393,7 +394,7 @@ func hashDocument(doc bsonx.Doc) (hash []byte, metaDoc bsonx.Doc, err error) {
 	return
 }
 
-func hashCollection(ctx context.Context, collection *mongo.Collection, version int64, proofKeys ...[]byte) (result hashResult, err error) {
+func hashCollection(ctx context.Context, collection *mongo.Collection, version int64, filterStr string, proofKeys ...[]byte) (result hashResult, err error) {
 	select {
 	case <-ctx.Done():
 		return result, ctx.Err()
@@ -406,7 +407,16 @@ func hashCollection(ctx context.Context, collection *mongo.Collection, version i
 		}
 	}()
 
-	cur, err := findDocs(ctx, collection, version, nil)
+	// If there is a filter, unmarshal it.
+	var filter bsonx.Doc
+	if filterStr != "" {
+		err = bson.UnmarshalExtJSON([]byte(filterStr), true, &filter)
+		if err != nil {
+			return result, fmt.Errorf("invalid `filter`: %s", err.Error())
+		}
+	}
+
+	cur, err := findDocs(ctx, collection, version, filter)
 	if err != nil {
 		return result, err
 	}

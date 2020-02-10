@@ -185,6 +185,7 @@ func verifyProof(
 	proof interface{},
 	version int64,
 	cols []string,
+	filterStr string,
 	opts ...interface{},
 ) (msg string, err error) {
 	var (
@@ -321,7 +322,7 @@ func verifyProof(
 		}
 
 		if actualHash == nil {
-			hr, err = hashDatabase(ctx, database, version, proofMap, cols, ignoredCollections)
+			hr, err = hashDatabase(ctx, database, version, proofMap, cols, ignoredCollections, filterStr)
 			if err != nil {
 				return
 			}

@@ -197,9 +197,10 @@ func handleCLI(c *cli.Context) int {
 	}
 
 	var (
-		cols     []string
-		database *mongo.Database
-		opts     []interface{}
+		cols      []string
+		database  *mongo.Database
+		filterStr string
+		opts      []interface{}
 	)
 
 	if cs.Database == "" {
@@ -268,7 +269,7 @@ func handleCLI(c *cli.Context) int {
 			if p := c.String(provenDBProofIDKey); p != "" {
 				// use proofId to get versionId
 				var storedProof interface{}
-				storedProof, versionID, cols, err = getProof(ctx, database, p, colName)
+				storedProof, versionID, cols, filterStr, err = getProof(ctx, database, p, colName)
 				if err != nil {
 					return cliErrorf("cannot get Chainpoint Proof using %s %s", provenDBProofIDKey, p)
 				}
@@ -285,7 +286,7 @@ func handleCLI(c *cli.Context) int {
 		}
 
 		if proof == nil {
-			proof, _, cols, err = getProof(ctx, database, versionID, colName)
+			proof, _, cols, filterStr, err = getProof(ctx, database, versionID, colName)
 			if err != nil {
 				return cliErrorf("cannot get Chainpoint Proof using %s %v: %s", provenDBVersionKey, versionID, err)
 			}
@@ -296,7 +297,7 @@ func handleCLI(c *cli.Context) int {
 		opts = append(opts, pubKeyOpt)
 	}
 
-	msg, err := verifyProof(ctx, database, proof, versionID, cols, opts...)
+	msg, err := verifyProof(ctx, database, proof, versionID, cols, filterStr, opts...)
 	if err != nil {
 		return cliFalsifiedf("%s:\n\t%s", msg, err)
 	}

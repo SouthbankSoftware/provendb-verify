@@ -219,7 +219,7 @@ func saveProof(filename string, proof interface{}) (err error) {
 // getProof gets a Chainpoint Proof and its associated version stored in ProvenDB using either a
 // `proofId` (string) or a `versionId` (int64)
 func getProof(ctx context.Context, database *mongo.Database, id interface{}, colName string) (
-	proof interface{}, version int64, cols []string, err error) {
+	proof interface{}, version int64, cols []string, filterStr string, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = r.(error)
@@ -317,6 +317,10 @@ func getProof(ctx context.Context, database *mongo.Database, id interface{}, col
 	}
 
 	if scope == provenDBScopeCollection {
+		filterStr, ok = doc.Lookup(provenDBDetailsKey, provenDBFilterKey).StringValueOK()
+		if ok {
+			fmt.Printf("Using proof filter '%s'\n", filterStr)
+		}
 		arr, ok := doc.Lookup(provenDBDetailsKey, provenDBCollectionsKey).ArrayOK()
 		if !ok {
 			err = fmt.Errorf("cannot get %s.%s", provenDBDetailsKey, provenDBCollectionsKey)
