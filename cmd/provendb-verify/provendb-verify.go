@@ -60,7 +60,7 @@ const (
 	provenDBSubmittedKey          = "submitted"
 	provenDBStatusKey             = "status"
 	provenDBScopeKey              = "scope"
-	provenDBFilterKey			  = "filter"
+	provenDBFilterKey             = "filter"
 	provenDBScopeCollection       = "collection"
 	provenDBScopeDatabase         = "database"
 	provenDBDetailsKey            = "details"
