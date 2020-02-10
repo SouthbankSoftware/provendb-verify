@@ -26,7 +26,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/mongodb/mongo-go-driver/bson/bsontype"
 	"strings"
@@ -165,18 +164,13 @@ func findDocs(ctx context.Context, collection *mongo.Collection, version int64, 
 		}),
 	}
 	if filter != nil {
-		// Ensure the filter does not contain metadata filtering
-		if documentContainsPrefix(filter, "_provendb_metadata") {
-			return nil, errors.New("filter cannot contain '_provendb_metadata' filtering")
-		}
-
 		// If the filter contains $and array, append the elements to our $and array
-		and, err := filter.LookupErr("$and")
-		if err == nil {
-			for _, v := range and.Array() {
+		and, ok := filter.Lookup("$and").ArrayOK()
+		if ok {
+			for _, v := range and {
 				andStatements = append(andStatements, v)
 			}
-			filter.Delete("$and")
+			filter = filter.Delete("$and")
 		}
 		filter = filter.Append("$and", bsonx.Array(andStatements))
 	} else {
