@@ -5,3 +5,4 @@ vendor
 /proofs
 /local
 /*.pem
+/.idea

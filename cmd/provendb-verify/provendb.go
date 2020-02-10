@@ -27,6 +27,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/mongodb/mongo-go-driver/bson/bsontype"
+	"strings"
 	"time"
 
 	"github.com/SouthbankSoftware/provendb-verify/pkg/merkle"
@@ -161,15 +163,22 @@ func findDocs(ctx context.Context, collection *mongo.Collection, version int64, 
 			},
 		}),
 	}
-
 	if filter != nil {
-		andStatements = append(andStatements, bsonx.Document(filter))
+		// If the filter contains $and array, append the elements to our $and array
+		and, ok := filter.Lookup("$and").ArrayOK()
+		if ok {
+			for _, v := range and {
+				andStatements = append(andStatements, v)
+			}
+			filter = filter.Delete("$and")
+		}
+		filter = filter.Append("$and", bsonx.Array(andStatements))
+	} else {
+		filter = bsonx.Doc{}.Append("$and", bsonx.Array(andStatements))
 	}
 
 	return collection.Find(ctx,
-		bsonx.Doc{
-			{"$and", bsonx.Array(andStatements)},
-		},
+		filter,
 		opts...,
 	)
 }
@@ -283,4 +292,46 @@ func getDocProofMap(ctx context.Context, database *mongo.Database, version int64
 	}
 
 	return
+}
+
+// documentContainsPrefix checks the document elements to see if any elements that are documents or nested arrays
+// contain fields that begin with the given prefix
+func documentContainsPrefix(doc bsonx.Doc, prefix string) bool {
+	for _, e := range doc {
+		// Check top level fields
+		if strings.HasPrefix(e.Key, prefix) {
+			return true
+		}
+		// We need to see if the field contains a document type (could be an conditional operator)
+		if e.Value.Type() == bsontype.EmbeddedDocument {
+			if documentContainsPrefix(e.Value.Document(), prefix) {
+				return true
+			}
+		}
+		// If the field is an array, we also need to check this
+		if e.Value.Type() == bsontype.Array {
+			if arrayContainsPrefix(e.Value.Array(), prefix) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// arrayContainsPrefix checks the array elements to see if any elements that are documents or nested arrays
+// contain fields that begin with the given prefix
+func arrayContainsPrefix(arr bsonx.Arr, prefix string) bool {
+	for _, v := range arr {
+		if v.Type() == bsontype.EmbeddedDocument {
+			if documentContainsPrefix(v.Document(), prefix) {
+				return true
+			}
+		}
+		if v.Type() == bsontype.Array {
+			if arrayContainsPrefix(v.Array(), prefix) {
+				return true
+			}
+		}
+	}
+	return false
 }
