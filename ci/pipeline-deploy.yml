@@ -105,7 +105,7 @@ resources:
     source:
       repository: asia.gcr.io/provendb/provendb-verify
       username: _json_key
-      password: ((common.service-account))    
+      password: ((common.service-account))
 
 jobs:
   - name: build-and-deploy
@@ -120,28 +120,34 @@ jobs:
       - get: version
       - task: build
         file: provendb-verify/ci/task-build/task-build.yml
-      - aggregate:
-          - put: release-darwin_amd64
-            params:
-              file: provendb-verify/provendb-verify_darwin_amd64
-              predefined_acl: publicRead
-          - put: release-linux_amd64
-            params:
-              file: provendb-verify/provendb-verify_linux_amd64
-              predefined_acl: publicRead
-          - put: release-windows_amd64
-            params:
-              file: provendb-verify/provendb-verify_windows_amd64.exe
-              predefined_acl: publicRead
+      - in_parallel:
+          fail_fast: true
+          limit: 3
+          steps:
+            - put: release-darwin_amd64
+              params:
+                file: provendb-verify/provendb-verify_darwin_amd64
+                predefined_acl: publicRead
+                cache_control: no-cache, max-age=0
+            - put: release-linux_amd64
+              params:
+                file: provendb-verify/provendb-verify_linux_amd64
+                predefined_acl: publicRead
+                cache_control: no-cache, max-age=0
+            - put: release-windows_amd64
+              params:
+                file: provendb-verify/provendb-verify_windows_amd64.exe
+                predefined_acl: publicRead
+                cache_control: no-cache, max-age=0
       - put: docker-registry
         params:
           build: provendb-verify
           tag_file: version/number
           tag_as_latest: true
-        get_params: { skip_download: true }         
+        get_params: { skip_download: true }
       - get: meta
       - get: provendb-releases
-        params: {clean_tags: true}
+        params: { clean_tags: true }
       - task: save-build-info
         file: provendb-verify/ci/task-save-build-info/task-save-build-info.yml
       - put: provendb-releases
