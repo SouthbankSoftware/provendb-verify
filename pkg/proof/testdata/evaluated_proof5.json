@@ -1,0 +1,22 @@
+{
+  "hash": "592b3fbc543c066dcfdbb51a02f843ee312289694b0977e36b7c57e983c75ba8",
+  "hash_id_node": "da023c5c-c895-11e9-a32f-2a2ae2dbcce4",
+  "hash_submitted_node_at": "2020-04-16T05:18:30Z",
+  "hash_id_core": "da023c5c-c895-11e9-a32f-2a2ae2dbcce4",
+  "hash_submitted_core_at": "2020-04-16T05:18:30Z",
+  "branches": [
+    {
+      "label": "pdb_btc_mainnet_anchor_branch",
+      "anchors": [
+        {
+          "type": "cal",
+          "anchor_id": "b60b2232592cad02ac084ecad6ab99c1a888c87bf56017c80a5f1d98d31c1ed6",
+          "uris": [
+            "https://anchor.provendb.com/btc_mainnet/b60b2232592cad02ac084ecad6ab99c1a888c87bf56017c80a5f1d98d31c1ed6"
+          ],
+          "expected_value": "592b3fbc543c066dcfdbb51a02f843ee312289694b0977e36b7c57e983c75ba8"
+        }
+      ]
+    }
+  ]
+}

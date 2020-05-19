@@ -19,7 +19,7 @@
  * @Author: guiguan
  * @Date:   2018-08-22T13:22:09+10:00
  * @Last modified by:   guiguan
- * @Last modified time: 2019-04-02T13:26:37+11:00
+ * @Last modified time: 2020-05-19T15:06:37+10:00
  */
 
 package eval
@@ -64,6 +64,22 @@ func TestEval(t *testing.T) {
 				testutil.LoadJSON(t, "proof3.json"),
 			},
 			testutil.LoadJSON(t, "evaluated_proof3.json"),
+			false,
+		},
+		{
+			"Evaluate Chainpoint v3 Proof - proof4.json",
+			args{
+				testutil.LoadJSON(t, "proof4.json"),
+			},
+			testutil.LoadJSON(t, "evaluated_proof4.json"),
+			false,
+		},
+		{
+			"Evaluate Chainpoint v3 Proof - proof5.json",
+			args{
+				testutil.LoadJSON(t, "proof5.json"),
+			},
+			testutil.LoadJSON(t, "evaluated_proof5.json"),
 			false,
 		},
 		{

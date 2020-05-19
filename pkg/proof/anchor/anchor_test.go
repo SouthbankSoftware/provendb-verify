@@ -19,7 +19,7 @@
  * @Author: guiguan
  * @Date:   2018-08-24T09:56:10+10:00
  * @Last modified by:   guiguan
- * @Last modified time: 2019-12-04T18:10:46+11:00
+ * @Last modified time: 2020-05-19T17:18:50+10:00
  */
 
 package anchor
@@ -132,6 +132,116 @@ func Test_verifyAnchorURIs(t *testing.T) {
 	}
 }
 
+func Test_verifyAnchorURIsIndependently(t *testing.T) {
+	VerifyAnchorIndependently = true
+	defer func() {
+		VerifyAnchorIndependently = false
+	}()
+
+	type args struct {
+		ctx           context.Context
+		uris          []interface{}
+		expectedValue string
+	}
+	tests := []struct {
+		name         string
+		args         args
+		wantedErrStr string
+	}{
+		{
+			"Verify Calendar anchor URIs independently",
+			args{
+				context.Background(),
+				[]interface{}{
+					"https://a.chainpoint.org/calendar/985635/hash",
+					"https://b.chainpoint.org/calendar/1902589/data",
+				},
+				"4690932f928fb7f7ce6e6c49ee95851742231709360be28b7ce2af7b92cfa95b",
+			},
+			"",
+		},
+		{
+			"Verify ETH anchor URI independently",
+			args{
+				context.Background(),
+				[]interface{}{
+					"https://anchor.provendb.com/eth/c86a9441a4fae4469f314d3520ecf1d62e670453e295add517c1d92d31ab3c6c",
+				},
+				"592b3fbc543c066dcfdbb51a02f843ee312289694b0977e36b7c57e983c75ba8",
+			},
+			"",
+		},
+		{
+			"Verify ETH_MAINNET anchor URI independently",
+			args{
+				context.Background(),
+				[]interface{}{
+					"https://anchor.provendb.com/eth_mainnet/6cae5d7b052b92a6b4646fb1d00b5e379350e3125d7e80ddf45694eb98284e26",
+				},
+				"592b3fbc543c066dcfdbb51a02f843ee312289694b0977e36b7c57e983c75ba8",
+			},
+			"",
+		},
+		{
+			"Verify BTC anchor URI independently",
+			args{
+				context.Background(),
+				[]interface{}{
+					"https://anchor.provendb.com/btc/7b0f1747e11a7d1369fcaa8c8c6e75e280c15a7a32968ec7d25082929d1df593",
+				},
+				"592b3fbc543c066dcfdbb51a02f843ee312289694b0977e36b7c57e983c75ba8",
+			},
+			"",
+		},
+		{
+			"Verify BTC_MAINNET anchor URI independently",
+			args{
+				context.Background(),
+				[]interface{}{
+					"https://anchor.provendb.com/btc_mainnet/b60b2232592cad02ac084ecad6ab99c1a888c87bf56017c80a5f1d98d31c1ed6",
+				},
+				"592b3fbc543c066dcfdbb51a02f843ee312289694b0977e36b7c57e983c75ba8",
+			},
+			"",
+		},
+		{
+			"Verify unknown anchor URIs independently",
+			args{
+				context.Background(),
+				[]interface{}{
+					"https://sadfkasklfdkas",
+				},
+				"592b3fbc543c066dcfdbb51a02f843ee312289694b0977e36b7c57e983c75ba8",
+			},
+			"verify anchor URI `https://sadfkasklfdkas` independently is not supported",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := verifyAnchorURIs(tt.args.ctx, tt.args.uris, tt.args.expectedValue)
+
+			if err != nil {
+				log.Error(err)
+
+				errStr := err.Error()
+
+				if errStr != tt.wantedErrStr {
+					const commSuffix = "no such host"
+
+					if strings.HasSuffix(errStr, commSuffix) &&
+						strings.HasSuffix(tt.wantedErrStr, commSuffix) {
+						return
+					}
+
+					t.Errorf("verifyAnchorURIs() errStr = %v, wantErrStr %v", errStr, tt.wantedErrStr)
+				}
+			} else if "" != tt.wantedErrStr {
+				t.Errorf("verifyAnchorURIs() errStr = , wantErrStr %v", tt.wantedErrStr)
+			}
+		})
+	}
+}
+
 func Test_verifyBitcoinBlockMerkleRoot(t *testing.T) {
 	var canceledCtx context.Context
 
@@ -205,7 +315,7 @@ func Test_verifyBitcoinTxOpReturn(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := verifyBitcoinTxOpReturn(tt.args.ctx, tt.args.txID, tt.args.expectedValue); (err != nil) != tt.wantErr {
+			if err := verifyBtcTxnData(tt.args.ctx, tt.args.txID, tt.args.expectedValue, true); (err != nil) != tt.wantErr {
 				t.Errorf("verifyBitcoinTxOpReturn() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
