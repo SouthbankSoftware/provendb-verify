@@ -19,7 +19,7 @@
  * @Author: guiguan
  * @Date:   2019-04-02T13:35:55+11:00
  * @Last modified by:   guiguan
- * @Last modified time: 2020-05-19T12:48:38+10:00
+ * @Last modified time: 2020-05-19T17:32:45+10:00
  */
 
 package main
@@ -33,6 +33,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/SouthbankSoftware/provendb-verify/pkg/proof/anchor"
 	"github.com/SouthbankSoftware/provenlogs/pkg/rsakey"
 	"github.com/fatih/color"
 	"github.com/mongodb/mongo-go-driver/mongo"
@@ -59,6 +60,8 @@ type docOpt struct {
 type pubKeyOpt *rsa.PublicKey
 
 func handleCLI(c *cli.Context) int {
+	anchor.VerifyAnchorIndependently = verifyAnchorIndependently
+
 	if c.Bool("help") {
 		cli.ShowAppHelpAndExit(c, 0)
 	}

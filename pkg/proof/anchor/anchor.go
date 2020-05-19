@@ -19,7 +19,7 @@
  * @Author: guiguan
  * @Date:   2018-08-24T09:56:10+10:00
  * @Last modified by:   guiguan
- * @Last modified time: 2019-12-04T17:57:47+11:00
+ * @Last modified time: 2020-05-19T17:18:44+10:00
  */
 
 package anchor
@@ -27,6 +27,7 @@ package anchor
 import (
 	"context"
 	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -35,24 +36,45 @@ import (
 	"math/big"
 	"net/http"
 	"os"
+	"regexp"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/SouthbankSoftware/provendb-verify/pkg/proof/status"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"golang.org/x/net/context/ctxhttp"
 	"golang.org/x/sync/errgroup"
 )
 
 var (
 	bcToken = ""
+	// VerifyAnchorIndependently indicates whether to verify a proof's anchor independently, which
+	// does not rely on the proof's anchor URI to do the verification
+	VerifyAnchorIndependently = false
+	reProvenDBAnchorURI       = regexp.MustCompile(`/(\w+)/([\da-f]+)$`)
 )
 
 const (
-	maxNumRetry = 10
+	maxNumRetry        = 10
+	endpointEth        = "https://rinkeby.infura.io/v3/ba25a62205f24e5bb74d4f9738910a83"
+	endpointEthMainnet = "https://mainnet.infura.io/v3/bb4fefecb7964761aa5462b092d54c00"
+	endpointEthElastos = "https://mainrpc.elaeth.io"
 )
 
 func init() {
-	if token, ok := os.LookupEnv("PROVENDB_VERIFY_BCTOKEN"); ok {
-		bcToken = token
+	if v, ok := os.LookupEnv("PROVENDB_VERIFY_BCTOKEN"); ok {
+		bcToken = v
+	}
+
+	if v, ok := os.LookupEnv("PROVENDB_VERIFY_VERIFY_ANCHOR_INDEPENDENTLY"); ok {
+		b, err := strconv.ParseBool(v)
+		if err != nil {
+			panic(fmt.Errorf("invalid `PROVENDB_VERIFY_VERIFY_ANCHOR_INDEPENDENTLY`: %s", err))
+		}
+
+		VerifyAnchorIndependently = b
 	}
 }
 
@@ -200,7 +222,7 @@ func verifyBitcoinBranch(ctx context.Context, branch map[string]interface{}) (er
 	expectedValue := branch["opReturnValue"].(string)
 
 	eg.Go(func() error {
-		return verifyBitcoinTxOpReturn(egCtx, txID, expectedValue)
+		return verifyBtcTxnData(egCtx, txID, expectedValue, true)
 	})
 
 	return eg.Wait()
@@ -233,18 +255,18 @@ func verifyBitcoinBlockMerkleRoot(ctx context.Context, blockHeight string, expec
 	if actualValue != expectedValue {
 		return status.NewVerificationStatusError(
 			status.VerificationStatusFalsified,
-			fmt.Errorf("Bitcoin block height %s has merkle root %s, but expect %s", blockHeight, actualValue, expectedValue),
+			fmt.Errorf("Bitcoin block height `%s` has merkle root `%s`, but expect `%s`", blockHeight, actualValue, expectedValue),
 		)
 	}
 
 	if ShowProgress {
-		fmt.Printf("Bitcoin block height %s has merkle root %s\n", blockHeight, actualValue)
+		fmt.Printf("Bitcoin block height `%s` has merkle root `%s`\n", blockHeight, actualValue)
 	}
 
 	return nil
 }
 
-func verifyBitcoinTxOpReturn(ctx context.Context, txID string, expectedValue string) (er error) {
+func verifyBtcTxnData(ctx context.Context, txnID, expectedValue string, mainnet bool) (er error) {
 	defer func() {
 		if r := recover(); r != nil {
 			er = status.NewVerificationStatusError(status.VerificationStatusFalsified, r.(error))
@@ -255,7 +277,17 @@ func verifyBitcoinTxOpReturn(ctx context.Context, txID string, expectedValue str
 		fmt.Println("Verifying Bitcoin transaction OP_RETURN...")
 	}
 
-	json, err := httpGetJSON(ctx, fmt.Sprintf("https://api.blockcypher.com/v1/btc/main/txs/%s?token=%s", txID, bcToken))
+	var network string
+
+	if mainnet {
+		network = "main"
+	} else {
+		network = "test3"
+	}
+
+	json, err := httpGetJSON(ctx,
+		fmt.Sprintf("https://api.blockcypher.com/v1/btc/%s/txs/%s?token=%s",
+			network, txnID, bcToken))
 	if err != nil {
 		return err
 	}
@@ -271,12 +303,54 @@ func verifyBitcoinTxOpReturn(ctx context.Context, txID string, expectedValue str
 	if actualValue != expectedValue {
 		return status.NewVerificationStatusError(
 			status.VerificationStatusFalsified,
-			fmt.Errorf("Bitcoin transaction %s has OP_RETURN %s, but expect %s", txID, actualValue, expectedValue),
+			fmt.Errorf("Bitcoin transaction `%s` has OP_RETURN `%s`, but expect `%s`", txnID, actualValue, expectedValue),
 		)
 	}
 
 	if ShowProgress {
-		fmt.Printf("Bitcoin transaction %s has OP_RETURN %s\n", txID, actualValue)
+		fmt.Printf("Bitcoin transaction `%s` has OP_RETURN `%s`\n", txnID, actualValue)
+	}
+
+	return nil
+}
+
+func verifyEthTxnData(ctx context.Context, txnID, expectedValue, endpoint string) (er error) {
+	defer func() {
+		if r := recover(); r != nil {
+			er = status.NewVerificationStatusError(status.VerificationStatusFalsified, r.(error))
+		}
+	}()
+
+	if ShowProgress {
+		fmt.Println("Verifying Ethereum transaction data...")
+	}
+
+	client, err := ethclient.DialContext(ctx, endpoint)
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+
+	tx, pending, err := client.TransactionByHash(ctx, common.HexToHash(txnID))
+	if err != nil {
+		return err
+	}
+
+	if pending {
+		return fmt.Errorf("the Ethereum transaction `%s` is still pending", txnID)
+	}
+
+	data := hex.EncodeToString(tx.Data())
+
+	if data != expectedValue {
+		return status.NewVerificationStatusError(
+			status.VerificationStatusFalsified,
+			fmt.Errorf("Ethereum transaction `%s` has data `%s`, but expect %s", txnID, data, expectedValue),
+		)
+	}
+
+	if ShowProgress {
+		fmt.Printf("Ethereum transaction `%s` has data `%s`\n", txnID, data)
 	}
 
 	return nil
@@ -301,6 +375,36 @@ func verifyAnchorURIs(ctx context.Context, uris []interface{}, expectedValue str
 		uri := uri.(string)
 
 		eg.Go(func() error {
+			if strings.Contains(uri, "/calendar") {
+				// ignore Chainpoint Calendar URIs
+				return nil
+			}
+
+			if VerifyAnchorIndependently {
+				if m := reProvenDBAnchorURI.FindStringSubmatch(uri); m != nil {
+					anchorType := m[1]
+					txnID := m[2]
+
+					switch anchorType {
+					case "eth":
+						return verifyEthTxnData(egCtx, txnID, expectedValue, endpointEth)
+					case "eth_mainnet":
+						return verifyEthTxnData(egCtx, txnID, expectedValue, endpointEthMainnet)
+					case "eth_elastos":
+						return verifyEthTxnData(egCtx, txnID, expectedValue, endpointEthElastos)
+					case "btc":
+						return verifyBtcTxnData(egCtx, txnID, expectedValue, false)
+					case "btc_mainnet":
+						return verifyBtcTxnData(egCtx, txnID, expectedValue, true)
+					}
+				}
+
+				return status.NewVerificationStatusError(
+					status.VerificationStatusUnverifiable,
+					fmt.Errorf("verify anchor URI `%s` independently is not supported", uri),
+				)
+			}
+
 			body, err := httpGet(egCtx, uri)
 			if err != nil {
 				return err

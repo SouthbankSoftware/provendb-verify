@@ -18,8 +18,8 @@
  *
  * @Author: guiguan
  * @Date:   2018-08-01T13:23:16+10:00
- * @Last modified by:   Michael Harrison
- * @Last modified time: 2020-01-17T12:00:59+11:00
+ * @Last modified by:   guiguan
+ * @Last modified time: 2020-05-19T17:31:02+10:00
  */
 
 package main
@@ -75,9 +75,10 @@ const (
 type proofType string
 
 var (
-	debug        bool
-	skipDocCheck bool
-	proofTypes   = struct {
+	debug,
+	skipDocCheck,
+	verifyAnchorIndependently bool
+	proofTypes = struct {
 		database proofType
 		document proofType
 		raw      proofType
@@ -226,6 +227,12 @@ COPYRIGHT:
 				Name:        "skipDocCheck",
 				Usage:       wrap("skip checking document hash against document metadata"),
 				Destination: &skipDocCheck,
+			},
+			&cli.BoolFlag{
+				Name:        "verifyAnchorIndependently",
+				Usage:       wrap("verify a proof's anchor independently, which does not rely on the proof's anchor URI to do the verification"),
+				Value:       true,
+				Destination: &verifyAnchorIndependently,
 			},
 		},
 		Action: func(c *cli.Context) error {

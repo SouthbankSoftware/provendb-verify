@@ -1,0 +1,27 @@
+{
+  "@context": "https://w3id.org/chainpoint/v3",
+  "type": "Chainpoint",
+  "hash": "592b3fbc543c066dcfdbb51a02f843ee312289694b0977e36b7c57e983c75ba8",
+  "hash_id_node": "da023c5c-c895-11e9-a32f-2a2ae2dbcce4",
+  "hash_submitted_node_at": "2020-04-13T00:52:55Z",
+  "hash_id_core": "da023c5c-c895-11e9-a32f-2a2ae2dbcce4",
+  "hash_submitted_core_at": "2020-04-13T00:52:55Z",
+  "branches": [
+    {
+      "label": "pdb_eth_mainnet_anchor_branch",
+      "ops": [
+        {
+          "anchors": [
+            {
+              "type": "cal",
+              "anchor_id": "6cae5d7b052b92a6b4646fb1d00b5e379350e3125d7e80ddf45694eb98284e26",
+              "uris": [
+                "https://anchor.provendb.com/eth_mainnet/6cae5d7b052b92a6b4646fb1d00b5e379350e3125d7e80ddf45694eb98284e26"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
