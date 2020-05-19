@@ -18,8 +18,8 @@
  *
  * @Author: guiguan
  * @Date:   2019-04-02T13:35:55+11:00
- * @Last modified by:   Michael Harrison
- * @Last modified time: 2020-01-17T12:01:33+11:00
+ * @Last modified by:   guiguan
+ * @Last modified time: 2020-05-19T12:48:38+10:00
  */
 
 package main
@@ -271,7 +271,7 @@ func handleCLI(c *cli.Context) int {
 				var storedProof interface{}
 				storedProof, versionID, cols, filterStr, err = getProof(ctx, database, p, colName)
 				if err != nil {
-					return cliErrorf("cannot get Chainpoint Proof using %s %s", provenDBProofIDKey, p)
+					return cliErrorf("cannot get Chainpoint Proof using %s %s: %s", provenDBProofIDKey, p, err)
 				}
 
 				if proof == nil {
