@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	github.com/SouthbankSoftware/provenlogs v0.0.0-20190917053636-b1cb8400f31e
+	github.com/elastic/gosigar v0.10.5 // indirect
 	github.com/ethereum/go-ethereum v1.9.14
 	github.com/fatih/color v1.7.0
 	github.com/mitchellh/gox v1.0.1
