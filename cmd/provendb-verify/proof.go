@@ -19,7 +19,7 @@
  * @Author: guiguan
  * @Date:   2019-04-02T13:39:00+11:00
  * @Last modified by:   guiguan
- * @Last modified time: 2019-08-28T16:31:55+10:00
+ * @Last modified time: 2020-05-19T12:39:40+10:00
  */
 
 package main
@@ -29,6 +29,7 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -40,6 +41,10 @@ import (
 	"github.com/mongodb/mongo-go-driver/mongo"
 	"github.com/mongodb/mongo-go-driver/mongo/options"
 	"github.com/mongodb/mongo-go-driver/x/bsonx"
+)
+
+var (
+	errProofUnverifiable = errors.New("proof is unverifiable")
 )
 
 func getProofType(proof interface{}) (proofType proofType, err error) {
@@ -226,27 +231,26 @@ func getProof(ctx context.Context, database *mongo.Database, id interface{}, col
 		}
 	}()
 
-	doc := bsonx.Doc{}
-	var searchEl bsonx.Elem
+	filter := bsonx.Doc{}
+	isByProofID := false
 
 	switch i := id.(type) {
 	case string:
-		searchEl = bsonx.Elem{provenDBProofIDKey, bsonx.String(i)}
+		filter = append(filter,
+			bsonx.Elem{provenDBProofIDKey, bsonx.String(i)})
+		isByProofID = true
 	case int64:
-		searchEl = bsonx.Elem{provenDBVersionKey, bsonx.Int64(i)}
+		filter = append(filter,
+			bsonx.Elem{provenDBVersionKey, bsonx.Int64(i)},
+			bsonx.Elem{provenDBStatusKey, bsonx.Document(bsonx.Doc{
+				{"$in", bsonx.Array(bsonx.Arr{
+					bsonx.String("submitted"),
+					bsonx.String("valid"),
+				})},
+			})})
 	default:
 		err = fmt.Errorf("unsupported ID type %T for getProof", i)
 		return
-	}
-
-	filter := bsonx.Doc{
-		searchEl,
-		{provenDBStatusKey, bsonx.Document(bsonx.Doc{
-			{"$in", bsonx.Array(bsonx.Arr{
-				bsonx.String("submitted"),
-				bsonx.String("valid"),
-			})},
-		})},
 	}
 
 	if colName != "" {
@@ -260,6 +264,8 @@ func getProof(ctx context.Context, database *mongo.Database, id interface{}, col
 			}),
 		})
 	}
+
+	doc := bsonx.Doc{}
 
 	err = database.
 		Collection(provenDBVersionProofs).
@@ -290,14 +296,37 @@ func getProof(ctx context.Context, database *mongo.Database, id interface{}, col
 				colMsg = fmt.Sprintf(" that covers collection `%s`", colName)
 			}
 
-			err = fmt.Errorf("no proof%s with status `submitted` or `valid` can be found", colMsg)
+			statusMsg := ""
+
+			if !isByProofID {
+				statusMsg = " with status `submitted` or `valid`"
+			}
+
+			err = fmt.Errorf("no proof%s%s can be found", colMsg, statusMsg)
 		}
 		return
 	}
 
-	fmt.Printf("Loading Chainpoint Proof `%s`...\n", doc.Lookup(provenDBProofIDKey))
+	status, ok := doc.Lookup(provenDBStatusKey).StringValueOK()
+	if !ok {
+		err = fmt.Errorf("cannot get %s", provenDBStatusKey)
+		return
+	}
 
-	version, ok := doc.Lookup(provenDBVersionKey).Int64OK()
+	statusMsg := ""
+
+	if isByProofID {
+		if status == "invalid" {
+			statusMsg = ", which is in `invalid` status"
+		} else if status != "submitted" && status != "valid" {
+			err = fmt.Errorf("%w, which is in `%s` status", errProofUnverifiable, status)
+			return
+		}
+	}
+
+	fmt.Printf("Loading Chainpoint Proof `%s`%s...\n", doc.Lookup(provenDBProofIDKey), statusMsg)
+
+	version, ok = doc.Lookup(provenDBVersionKey).Int64OK()
 	if !ok {
 		err = fmt.Errorf("cannot get %s", provenDBVersionKey)
 		return
