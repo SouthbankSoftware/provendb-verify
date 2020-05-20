@@ -119,6 +119,7 @@ jobs:
           state: pending
       - get: version
       - task: build
+        privileged: true
         file: provendb-verify/ci/task-build/task-build.yml
       - in_parallel:
           fail_fast: true
