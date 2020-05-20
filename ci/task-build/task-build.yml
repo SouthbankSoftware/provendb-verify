@@ -23,21 +23,32 @@
 platform: linux
 image_resource:
   type: docker-image
-  source: { repository: golang, tag: 1.13.3 }
+  source: { repository: creack/golang-dcind, tag: 1.14 }
 inputs:
   - name: version
   - name: provendb-verify
 outputs:
   - name: provendb-verify
 params:
-  GIT_ACCESS_TOKEN: ((common.git-access-token))
   BC_TOKEN: ((provendb-verify.bc-token))
 run:
-  path: sh
+  path: bash
   args:
     - -exc
     - |
+      source /entrypoint.sh
+      start_docker
+      cleanup() {
+        docker stop -t 0 $(docker container ls -a -q) || true
+        docker system prune -a -f || true
+        stop_docker || true
+      }
+      trap cleanup EXIT
+      await_docker
+
       export APP_VERSION=$(cat version/number)
-      git config --global url."https://${GIT_ACCESS_TOKEN}:@github.com/".insteadOf "https://github.com/"
       cd provendb-verify
       make build-all
+      mv provendb-verify-darwin-*-amd64 provendb-verify_darwin_amd64
+      mv provendb-verify-linux-amd64 provendb-verify_linux_amd64
+      mv provendb-verify-windows-*-amd64.exe provendb-verify_windows_amd64.exe

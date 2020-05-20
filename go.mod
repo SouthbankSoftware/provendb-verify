@@ -4,10 +4,8 @@ go 1.12
 
 require (
 	github.com/SouthbankSoftware/provenlogs v0.0.0-20190917053636-b1cb8400f31e
-	github.com/elastic/gosigar v0.10.5 // indirect
-	github.com/ethereum/go-ethereum v1.9.14
+	github.com/ethereum/go-ethereum v1.9.9
 	github.com/fatih/color v1.7.0
-	github.com/mitchellh/gox v1.0.1
 	github.com/mongodb/mongo-go-driver v0.3.0
 	github.com/sirupsen/logrus v1.3.0
 	github.com/stretchr/testify v1.4.0
@@ -18,4 +16,5 @@ require (
 	golang.org/x/net v0.0.0-20200425230154-ff2c4b7c35a0
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
 	gopkg.in/urfave/cli.v2 v2.0.0-20180128182452-d3ae77c26ac8
+	src.techknowlogick.com/xgo v0.0.0-20200514233805-209a5cf70012
 )

@@ -18,7 +18,7 @@
 # @Author: guiguan
 # @Date:   2018-08-01T15:46:09+10:00
 # @Last modified by:   guiguan
-# @Last modified time: 2019-04-04T09:27:56+11:00
+# @Last modified time: 2020-05-20T11:50:01+10:00
 
 PROJECT_IMPORT_PATH := github.com/SouthbankSoftware/provendb-verify
 APP_NAME := provendb-verify
@@ -54,4 +54,4 @@ playground:
 doc:
 	godoc -http=:6060
 build-all:
-	go run github.com/mitchellh/gox -osarch="linux/amd64 windows/amd64 darwin/amd64" $(LD_FLAGS) ./cmd/$(APP_NAME)
+	go run src.techknowlogick.com/xgo --deps=https://gmplib.org/download/gmp/gmp-6.0.0a.tar.bz2 --targets=linux/amd64,windows/amd64,darwin/amd64 --pkg cmd/$(APP_NAME) $(LD_FLAGS) $(PROJECT_IMPORT_PATH)

@@ -14,16 +14,37 @@ Deploy status
 
 `provendb-verify` is an open source command line tool that allows ProvenDB/Chainpoint Proofs or Archives to be verified independently of the ProvenDB DBaaS.
 
-* Build: `make`
-* Usage: `./provendb-verify -h`
-* Build for all platforms: `make build-all`
-* [ReadMe.io doc](https://provendb.readme.io/docs/independently-validating-your-blockchain-proofs#section-use-provendb-verify-to-validate-your-proofs)
+## Usage
 
-## Makefile Options
+### Download dev (cutting-edge) binaries
+
+- [mac](https://storage.googleapis.com/provendb-dev/provendb-verify/provendb-verify_darwin_amd64)
+- [linux](https://storage.googleapis.com/provendb-dev/provendb-verify/provendb-verify_linux_amd64)
+- [windows](https://storage.googleapis.com/provendb-dev/provendb-verify/provendb-verify_windows_amd64.exe)
+
+### Download prd (released) binaries
+
+- [mac](https://storage.googleapis.com/provendb-prd/provendb-verify/provendb-verify_darwin_amd64)
+- [linux](https://storage.googleapis.com/provendb-prd/provendb-verify/provendb-verify_linux_amd64)
+- [windows](https://storage.googleapis.com/provendb-prd/provendb-verify/provendb-verify_windows_amd64.exe)
+
+### Build your own binary
+
+- Build: `make`
+- Build for all platforms: `make build-all` (requires docker)
+
+### Documentation
+
+- `./provendb-verify -h`
+- [ReadMe.io](https://provendb.readme.io/docs/independently-validating-your-blockchain-proofs#section-use-provendb-verify-to-validate-your-proofs)
+
+## Development
+
+### Makefile Options
 
 Following Makefile options are global to all `go` commands
 
-### `APP_VERSION`
+#### `APP_VERSION`
 
 The CLI release version
 
@@ -36,7 +57,7 @@ APP_VERSION=0.0.2 make
 # provendb-verify version 0.0.2
 ```
 
-### `BC_TOKEN`
+#### `BC_TOKEN`
 
 The [BlockCypher](https://www.blockcypher.com/) access token to be used in the CLI
 
@@ -46,20 +67,32 @@ Example:
 BC_TOKEN=${YOUR_TOKEN_HERE} make test-dev
 ```
 
-## Packages
+### Packages
 
-### [`merkle`](https://github.com/SouthbankSoftware/provendb-verify/tree/master/pkg/merkle)
+#### [`merkle`](https://github.com/SouthbankSoftware/provendb-verify/tree/master/pkg/merkle)
 
 Contains the generic hashing interface for bags
 
-### [`merkle.chainpoint`](https://github.com/SouthbankSoftware/provendb-verify/tree/master/pkg/merkle/chainpoint)
+#### [`merkle.chainpoint`](https://github.com/SouthbankSoftware/provendb-verify/tree/master/pkg/merkle/chainpoint)
 
 Contains the Chainpoint flavored merkle tree implementation for above hashing interface
 
-### [`crypto`](https://github.com/SouthbankSoftware/provendb-verify/tree/master/pkg/crypto)
+#### [`crypto`](https://github.com/SouthbankSoftware/provendb-verify/tree/master/pkg/crypto)
 
 Contains convenient helpers for generating hashes, such as sha256
 
-### [`proof`](https://github.com/SouthbankSoftware/provendb-verify/tree/master/pkg/proof)
+#### [`proof`](https://github.com/SouthbankSoftware/provendb-verify/tree/master/pkg/proof)
 
 Contains all the logics to manipulate and verify ProvenDB/Chainpoint Proofs
+
+## FAQ
+
+### Error: "provendb-verify_darwin_amd64" cannot be opened because the developer cannot be verified
+
+![Mac Cannot Open Issue](docs/mac_cannot_open_issue.png)
+
+Use the following command to fix:
+
+```bash
+xattr -d com.apple.quarantine path/to/provendb-verify_darwin_amd64
+```
