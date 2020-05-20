@@ -36,7 +36,9 @@ run:
   args:
     - -exc
     - |
-      source /bin/entrypoint.sh
+      export APP_VERSION=$(cat version/number)
+      cd provendb-verify
+      source ci/task-build/dcind.bash
       start_docker
       cleanup() {
         docker stop -t 0 $(docker container ls -a -q) || true
@@ -46,8 +48,6 @@ run:
       trap cleanup EXIT
       await_docker
 
-      export APP_VERSION=$(cat version/number)
-      cd provendb-verify
       make build-all
       mv provendb-verify-darwin-*-amd64 provendb-verify_darwin_amd64
       mv provendb-verify-linux-amd64 provendb-verify_linux_amd64
