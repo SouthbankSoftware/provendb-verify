@@ -36,7 +36,7 @@ run:
   args:
     - -exc
     - |
-      source /entrypoint.sh
+      source /bin/entrypoint.sh
       start_docker
       cleanup() {
         docker stop -t 0 $(docker container ls -a -q) || true
