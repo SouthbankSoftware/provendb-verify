@@ -19,32 +19,26 @@
  * @Author: guiguan
  * @Date:   2018-08-24T09:56:10+10:00
  * @Last modified by:   guiguan
- * @Last modified time: 2020-05-19T17:18:44+10:00
+ * @Last modified time: 2020-06-16T15:22:44+10:00
  */
 
 package anchor
 
 import (
 	"context"
-	"crypto/rand"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
-	"math/big"
-	"net/http"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 
+	"github.com/SouthbankSoftware/provendb-verify/pkg/httputil"
 	"github.com/SouthbankSoftware/provendb-verify/pkg/proof/status"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"golang.org/x/net/context/ctxhttp"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -57,7 +51,6 @@ var (
 )
 
 const (
-	maxNumRetry        = 10
 	endpointEth        = "https://rinkeby.infura.io/v3/ba25a62205f24e5bb74d4f9738910a83"
 	endpointEthMainnet = "https://mainnet.infura.io/v3/bb4fefecb7964761aa5462b092d54c00"
 	endpointEthElastos = "https://mainrpc.elaeth.io"
@@ -239,7 +232,7 @@ func verifyBitcoinBlockMerkleRoot(ctx context.Context, blockHeight string, expec
 		fmt.Println("Verifying Bitcoin block merkle root...")
 	}
 
-	json, err := httpGetJSON(ctx, fmt.Sprintf("https://api.blockcypher.com/v1/btc/main/blocks/%s?txstart=1&limit=1&token=%s", blockHeight, bcToken))
+	json, err := httputil.HTTPGetJSON(ctx, fmt.Sprintf("https://api.blockcypher.com/v1/btc/main/blocks/%s?txstart=1&limit=1&token=%s", blockHeight, bcToken))
 	if err != nil {
 		return err
 	}
@@ -285,7 +278,7 @@ func verifyBtcTxnData(ctx context.Context, txnID, expectedValue string, mainnet 
 		network = "test3"
 	}
 
-	json, err := httpGetJSON(ctx,
+	json, err := httputil.HTTPGetJSON(ctx,
 		fmt.Sprintf("https://api.blockcypher.com/v1/btc/%s/txs/%s?token=%s",
 			network, txnID, bcToken))
 	if err != nil {
@@ -405,7 +398,7 @@ func verifyAnchorURIs(ctx context.Context, uris []interface{}, expectedValue str
 				)
 			}
 
-			body, err := httpGet(egCtx, uri)
+			body, err := httputil.HTTPGet(egCtx, uri)
 			if err != nil {
 				return err
 			}
@@ -430,68 +423,4 @@ func verifyAnchorURIs(ctx context.Context, uris []interface{}, expectedValue str
 	}
 
 	return eg.Wait()
-}
-
-func httpGet(ctx context.Context, url string) (body io.ReadCloser, err error) {
-	var (
-		retryCount = 0
-		resp       *http.Response
-	)
-
-	for {
-		resp, err = ctxhttp.Get(ctx, &http.Client{}, url)
-		if err != nil {
-			return nil, err
-		}
-
-		if sc := resp.StatusCode; sc == 429 {
-			// 429: Too Many Requests
-
-			// randomly wait 100 to 1000 ms before retrying
-			nBig, err := rand.Int(rand.Reader, big.NewInt(900))
-			if err != nil {
-				return nil, err
-			}
-			n := nBig.Int64()
-
-			time.Sleep(time.Duration(n) * time.Millisecond)
-
-			retryCount++
-			if retryCount <= maxNumRetry {
-				continue
-			} else {
-				return nil, fmt.Errorf("still getting %s from %s after %d retries", resp.Status, url, maxNumRetry)
-			}
-		} else if sc >= 400 {
-			var errMsg string
-
-			bodyBytes, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				errMsg = err.Error()
-			} else {
-				errMsg = string(bodyBytes)
-			}
-
-			return nil, fmt.Errorf("got %s from %s: %s", resp.Status, url, errMsg)
-		}
-
-		break
-	}
-
-	return resp.Body, nil
-}
-
-func httpGetJSON(ctx context.Context, url string) (result interface{}, err error) {
-	body, err := httpGet(ctx, url)
-	if err != nil {
-		return nil, err
-	}
-
-	defer body.Close()
-
-	if err := json.NewDecoder(body).Decode(&result); err != nil {
-		return nil, err
-	}
-
-	return result, nil
 }
