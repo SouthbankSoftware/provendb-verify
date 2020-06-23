@@ -1,7 +1,5 @@
-FROM alpine:3.10.3
+FROM frolvlad/alpine-glibc:glibc-2.31
 
-RUN wget https://storage.googleapis.com/provendb-dev/provendb-verify/provendb-verify_linux_amd64 -O /bin/provendb-verify && \
-chmod a+x /bin/provendb-verify && \
-apk add --no-cache libc6-compat ca-certificates 
+RUN wget https://storage.googleapis.com/provendb-dev/provendb-verify/provendb-verify_linux_amd64 -O /bin/provendb-verify
 
 CMD ["/bin/ash", "-c", "provendb-verify -h"]
