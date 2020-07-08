@@ -100,13 +100,13 @@ resources:
       bucket: provendb-dev
       json_key: ((common.service-account))
       versioned_file: provendb-verify/provendb-verify_windows_amd64.exe
+  
   - name: docker-registry
     type: docker-image
     source:
-      repository: asia.gcr.io/provendb/provendb-verify
-      username: _json_key
-      password: ((common.service-account))
-
+      repository: provendbdev.azurecr.io/provendb-verify
+      username: ((common.azure-registry-username))
+      password: ((common.azure-registry-password))    
 jobs:
   - name: build-and-deploy
     serial: true
