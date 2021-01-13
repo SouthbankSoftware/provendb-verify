@@ -19,7 +19,7 @@
  * @Author: guiguan
  * @Date:   2018-08-24T09:56:10+10:00
  * @Last modified by:   guiguan
- * @Last modified time: 2020-06-16T15:22:44+10:00
+ * @Last modified time: 2021-01-13T11:48:37+11:00
  */
 
 package anchor
@@ -51,9 +51,11 @@ var (
 )
 
 const (
-	endpointEth        = "https://rinkeby.infura.io/v3/ba25a62205f24e5bb74d4f9738910a83"
-	endpointEthMainnet = "https://mainnet.infura.io/v3/bb4fefecb7964761aa5462b092d54c00"
-	endpointEthElastos = "https://mainrpc.elaeth.io"
+	endpointEth           = "https://rinkeby.infura.io/v3/ba25a62205f24e5bb74d4f9738910a83"
+	endpointEthMainnet    = "https://mainnet.infura.io/v3/bb4fefecb7964761aa5462b092d54c00"
+	endpointEthElastos    = "https://mainrpc.elaeth.io"
+	endpointHedera        = "https://api.testnet.kabuto.sh/v1/"
+	endpointHederaMainnet = "https://api.kabuto.sh/v1/"
 )
 
 func init() {
@@ -349,6 +351,49 @@ func verifyEthTxnData(ctx context.Context, txnID, expectedValue, endpoint string
 	return nil
 }
 
+func verifyHederaTxnData(ctx context.Context, txnID, expectedValue string, mainnet bool) (er error) {
+	defer func() {
+		if r := recover(); r != nil {
+			er = status.NewVerificationStatusError(status.VerificationStatusFalsified, r.(error))
+		}
+	}()
+
+	if ShowProgress {
+		fmt.Println("Verifying Hedera transaction data...")
+	}
+
+	type kabutoTxn struct {
+		Memo string `json:"memo"`
+	}
+
+	t := kabutoTxn{}
+
+	endpoint := endpointHedera
+	if mainnet {
+		endpoint = endpointHederaMainnet
+	}
+
+	err := httputil.UnmarshalHTTPGetJSON(ctx, endpoint+"transaction/"+txnID, &t)
+	if err != nil {
+		er = err
+		return
+	}
+	actualValue := t.Memo
+
+	if actualValue != expectedValue {
+		return status.NewVerificationStatusError(
+			status.VerificationStatusFalsified,
+			fmt.Errorf("Hedera transaction `%s` has data `%s`, but expect `%s`", txnID, actualValue, expectedValue),
+		)
+	}
+
+	if ShowProgress {
+		fmt.Printf("Hedera transaction `%s` has data `%s`\n", txnID, actualValue)
+	}
+
+	return nil
+}
+
 func verifyAnchorURIs(ctx context.Context, uris []interface{}, expectedValue string) (er error) {
 	select {
 	case <-ctx.Done():
@@ -389,6 +434,10 @@ func verifyAnchorURIs(ctx context.Context, uris []interface{}, expectedValue str
 						return verifyBtcTxnData(egCtx, txnID, expectedValue, false)
 					case "btc_mainnet":
 						return verifyBtcTxnData(egCtx, txnID, expectedValue, true)
+					case "hedera":
+						return verifyHederaTxnData(egCtx, txnID, expectedValue, false)
+					case "hedera_mainnet":
+						return verifyHederaTxnData(egCtx, txnID, expectedValue, true)
 					}
 				}
 
