@@ -33,8 +33,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/SouthbankSoftware/provendb-verify/pkg/crypto/rsakey"
 	"github.com/SouthbankSoftware/provendb-verify/pkg/proof/anchor"
-	"github.com/SouthbankSoftware/provenlogs/pkg/rsakey"
 	"github.com/fatih/color"
 	"github.com/mongodb/mongo-go-driver/mongo"
 	"github.com/mongodb/mongo-go-driver/mongo/options"

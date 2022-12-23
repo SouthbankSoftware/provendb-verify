@@ -36,12 +36,12 @@ import (
 	"io/ioutil"
 	"strings"
 
+	"github.com/SouthbankSoftware/provendb-verify/pkg/crypto/rsasig"
 	"github.com/SouthbankSoftware/provendb-verify/pkg/merkle"
 	"github.com/SouthbankSoftware/provendb-verify/pkg/proof/anchor"
 	"github.com/SouthbankSoftware/provendb-verify/pkg/proof/eval"
 	"github.com/SouthbankSoftware/provendb-verify/pkg/proof/schema"
 	"github.com/SouthbankSoftware/provendb-verify/pkg/proof/status"
-	"github.com/SouthbankSoftware/provenlogs/pkg/rsasig"
 	"github.com/mongodb/mongo-go-driver/bson"
 	"github.com/mongodb/mongo-go-driver/mongo"
 	"github.com/mongodb/mongo-go-driver/x/bsonx"
