@@ -27,9 +27,11 @@ package anchor
 import (
 	"context"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"regexp"
 	"strconv"
@@ -43,7 +45,8 @@ import (
 )
 
 var (
-	bcToken = ""
+	bcToken           = ""
+	dragonglassApikey = ""
 	// VerifyAnchorIndependently indicates whether to verify a proof's anchor independently, which
 	// does not rely on the proof's anchor URI to do the verification
 	VerifyAnchorIndependently = false
@@ -54,13 +57,17 @@ const (
 	endpointEth           = "https://rinkeby.infura.io/v3/ba25a62205f24e5bb74d4f9738910a83"
 	endpointEthMainnet    = "https://mainnet.infura.io/v3/bb4fefecb7964761aa5462b092d54c00"
 	endpointEthElastos    = "https://mainrpc.elaeth.io"
-	endpointHedera        = "https://api.testnet.kabuto.sh/v1/"
-	endpointHederaMainnet = "https://api.kabuto.sh/v1/"
+	endpointHedera        = "https://api-testnet.dragonglass.me/hedera/api/transactions"
+	endpointHederaMainnet = "https://api.dragonglass.me/hedera/api/transactions"
 )
 
 func init() {
 	if v, ok := os.LookupEnv("PROVENDB_VERIFY_BCTOKEN"); ok {
 		bcToken = v
+	}
+
+	if v, ok := os.LookupEnv("PROVENDB_VERIFY_DRAGONGLASS_API_KEY"); ok {
+		dragonglassApikey = v
 	}
 
 	if v, ok := os.LookupEnv("PROVENDB_VERIFY_VERIFY_ANCHOR_INDEPENDENTLY"); ok {
@@ -362,23 +369,42 @@ func verifyHederaTxnData(ctx context.Context, txnID, expectedValue string, mainn
 		fmt.Println("Verifying Hedera transaction data...")
 	}
 
-	type kabutoTxn struct {
-		Memo string `json:"memo"`
-	}
+	// type kabutoTxn struct {
+	// 	Memo string `json:"memo"`
+	// }
 
-	t := kabutoTxn{}
+	t := make(map[string]interface{})
 
 	endpoint := endpointHedera
 	if mainnet {
 		endpoint = endpointHederaMainnet
 	}
 
-	err := httputil.UnmarshalHTTPGetJSON(ctx, endpoint+"transaction/"+txnID, &t)
+	url := fmt.Sprintf("%s?query=%s", endpoint, txnID)
+
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		er = err
-		return
+		return err
 	}
-	actualValue := t.Memo
+	req.Header.Set("x-api-key", dragonglassApikey)
+
+	res, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	if err := json.NewDecoder(res.Body).Decode(&t); err != nil {
+		return err
+	}
+	// err := httputil.UnmarshalHTTPGetJSON(ctx, endpoint+"?query="+txnID, &t)
+	// if err != nil {
+	// 	er = err
+	// 	return
+	// }
+
+	data := t["data"].([]interface{})[0].(map[string]interface{})
+	actualValue := data["memo"]
 
 	if actualValue != expectedValue {
 		return status.NewVerificationStatusError(

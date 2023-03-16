@@ -78,7 +78,7 @@ func Branch(startHash []byte, branch map[string]interface{}) (resultBranch map[s
 	resultBranch = make(map[string]interface{})
 
 	var (
-		resultAnchors []interface{}
+		resultAnchors []interface{} = make([]interface{}, 0)
 		isBTC         bool
 		btcQueue      *queue.Queue
 	)
@@ -186,6 +186,9 @@ func evalBranches(startHash []byte, branches []interface{}) (result []interface{
 }
 
 func evalAnchors(currHash []byte, anchors []interface{}) (result []interface{}) {
+	// set default result to an empty array to prevent writing null anchor objects.
+	result = make([]interface{}, 0)
+
 	for i := 0; i < len(anchors); i++ {
 		anchor := anchors[i].(map[string]interface{})
 

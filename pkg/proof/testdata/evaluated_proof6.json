@@ -1,0 +1,26 @@
+{
+    "branches": [
+        {
+            "anchors": [],
+            "label": "pdb_doc_branch"
+        },
+        {
+            "anchors": [
+                {
+                    "anchor_id": "5d276b497088b34cac04f06d1444917f570139debcec45f9d0b52ae36133cc964c0c47e89ffb8658f24a4868e61bf435",
+                    "expected_value": "e6da9212625658446c152172e73908aa6c4696890659d4bcab0e5d3fdbf1abf5",
+                    "type": "cal",
+                    "uris": [
+                        "https://anchor.proofable.io/verify/hedera_mainnet/5d276b497088b34cac04f06d1444917f570139debcec45f9d0b52ae36133cc964c0c47e89ffb8658f24a4868e61bf435"
+                    ]
+                }
+            ],
+            "label": "pdb_hedera_mainnet_anchor_branch"
+        }
+    ],
+    "hash": "92d8e584cb3b16fa22ff0e6b41c4fea63d593a36e3f84f14224fafc0a86ae740",
+    "hash_id_core": "da023c5c-c895-11e9-a32f-2a2ae2dbcce4",
+    "hash_id_node": "da023c5c-c895-11e9-a32f-2a2ae2dbcce4",
+    "hash_submitted_core_at": "2023-02-22T23:12:58Z",
+    "hash_submitted_node_at": "2023-02-22T23:12:58Z"
+}

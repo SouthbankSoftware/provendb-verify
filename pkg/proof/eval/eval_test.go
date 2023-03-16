@@ -83,6 +83,14 @@ func TestEval(t *testing.T) {
 			false,
 		},
 		{
+			"Evaluate Chainpoint v3 Proof - proof6.json",
+			args{
+				testutil.LoadJSON(t, "proof6.json"),
+			},
+			testutil.LoadJSON(t, "evaluated_proof6.json"),
+			false,
+		},
+		{
 			"Evaluate corrupted JSON",
 			args{
 				"I am not JSON",

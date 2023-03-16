@@ -1,0 +1,134 @@
+{
+    "@context": "https://w3id.org/chainpoint/v3",
+    "type": "Chainpoint",
+    "hash": "92d8e584cb3b16fa22ff0e6b41c4fea63d593a36e3f84f14224fafc0a86ae740",
+    "hash_id_node": "da023c5c-c895-11e9-a32f-2a2ae2dbcce4",
+    "hash_submitted_node_at": "2023-02-22T23:12:58Z",
+    "hash_id_core": "da023c5c-c895-11e9-a32f-2a2ae2dbcce4",
+    "hash_submitted_core_at": "2023-02-22T23:12:58Z",
+    "branches": [
+        {
+            "label": "pdb_doc_branch",
+            "ops": [
+                {
+                    "l": "1922d42a1b3f28bcc1477baa1ce02ec5c3b5b1f55179675869a126f4d3363320"
+                },
+                {
+                    "op": "sha-256"
+                },
+                {
+                    "r": "e38039d9e0bdbf36695b67cdefdb9e4f3889cc9900b9972ccc250697087e2a36"
+                },
+                {
+                    "op": "sha-256"
+                },
+                {
+                    "r": "5823f1fe23533815e546b1cdc098bda0cf570cdf141ef38256f7847a30179847"
+                },
+                {
+                    "op": "sha-256"
+                },
+                {
+                    "l": "380e696c6b6f46cab0c29825c30259d308994785a210abd4cb95963ca38b58e1"
+                },
+                {
+                    "op": "sha-256"
+                },
+                {
+                    "l": "46df8b4e69f165252a29ce32f04e395062218b2e78f91f0da15e290958718f1e"
+                },
+                {
+                    "op": "sha-256"
+                },
+                {
+                    "l": "218e65828df134e90ae93f6cbbf6521d3530905e0e2c28460eb997762d34b535"
+                },
+                {
+                    "op": "sha-256"
+                },
+                {
+                    "l": "06ec3581aef6efe5e60077feda49f64ae8615e07d9c4fc535b96d19e8930c574"
+                },
+                {
+                    "op": "sha-256"
+                },
+                {
+                    "r": "1c302ebde3ec1717b1729f431525369da3142f85840e70ec09b08b479cbbd60a"
+                },
+                {
+                    "op": "sha-256"
+                },
+                {
+                    "l": "30d475d76642d188d75f671ec92cfabb72d6cf103109fb6cedc4757a58408628"
+                },
+                {
+                    "op": "sha-256"
+                },
+                {
+                    "r": "aef1472352953eed08a8a8e3f4e73712265a46bfccbb436a4f14eaa30b1c56b6"
+                },
+                {
+                    "op": "sha-256"
+                },
+                {
+                    "l": "6a3b4cb42c3f2039794f16ddbf55829e9a5e4e19c88f44c4e6ae1eee70fb8487"
+                },
+                {
+                    "op": "sha-256"
+                },
+                {
+                    "r": "3bac71e8809fc2a74e19b62d08ad60475069c5bfa159845366c04afcca10cb09"
+                },
+                {
+                    "op": "sha-256"
+                },
+                {
+                    "l": "7c9eb73f6368495d752d90f5ed33b30cbfbebb2ecdf1b111df3dbcedec28d0cd"
+                },
+                {
+                    "op": "sha-256"
+                },
+                {
+                    "l": "3cce5cdf352cad0732c8b645fcfa801305ce938f88561494c28117eb73651cbe"
+                },
+                {
+                    "op": "sha-256"
+                },
+                {
+                    "l": "82ceb1d77a763e0c6546be21d9c03c413584f19a70839a6bbb5d867d08328bad"
+                },
+                {
+                    "op": "sha-256"
+                },
+                {
+                    "l": "0458501f5d8dc280270903806e1eb1fc8abb0c3e14001b5ac2bf7d82a243ef4e"
+                },
+                {
+                    "op": "sha-256"
+                },
+                {
+                    "r": "38c155f789d226eddfb6e4f5bf5ec48a26f5fc45b57d39b1b5144316e1bbb127"
+                },
+                {
+                    "op": "sha-256"
+                }
+            ]
+        },
+        {
+            "label": "pdb_hedera_mainnet_anchor_branch",
+            "ops": [
+                {
+                    "anchors": [
+                        {
+                            "type": "cal",
+                            "anchor_id": "5d276b497088b34cac04f06d1444917f570139debcec45f9d0b52ae36133cc964c0c47e89ffb8658f24a4868e61bf435",
+                            "uris": [
+                                "https://anchor.proofable.io/verify/hedera_mainnet/5d276b497088b34cac04f06d1444917f570139debcec45f9d0b52ae36133cc964c0c47e89ffb8658f24a4868e61bf435"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

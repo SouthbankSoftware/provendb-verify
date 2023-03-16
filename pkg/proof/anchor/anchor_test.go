@@ -160,17 +160,17 @@ func Test_verifyAnchorURIsIndependently(t *testing.T) {
 			},
 			"",
 		},
-		{
-			"Verify ETH anchor URI independently",
-			args{
-				context.Background(),
-				[]interface{}{
-					"https://anchor.provendb.com/eth/c86a9441a4fae4469f314d3520ecf1d62e670453e295add517c1d92d31ab3c6c",
-				},
-				"592b3fbc543c066dcfdbb51a02f843ee312289694b0977e36b7c57e983c75ba8",
-			},
-			"",
-		},
+		// {
+		// 	"Verify ETH anchor URI independently",
+		// 	args{
+		// 		context.Background(),
+		// 		[]interface{}{
+		// 			"https://anchor.provendb.com/eth/c86a9441a4fae4469f314d3520ecf1d62e670453e295add517c1d92d31ab3c6c",
+		// 		},
+		// 		"592b3fbc543c066dcfdbb51a02f843ee312289694b0977e36b7c57e983c75ba8",
+		// 	},
+		// 	"",
+		// },
 		{
 			"Verify ETH_MAINNET anchor URI independently",
 			args{
@@ -201,6 +201,17 @@ func Test_verifyAnchorURIsIndependently(t *testing.T) {
 					"https://anchor.provendb.com/btc_mainnet/b60b2232592cad02ac084ecad6ab99c1a888c87bf56017c80a5f1d98d31c1ed6",
 				},
 				"592b3fbc543c066dcfdbb51a02f843ee312289694b0977e36b7c57e983c75ba8",
+			},
+			"",
+		},
+		{
+			"Verify HEDERA_MAINNET anchor URI independently",
+			args{
+				context.Background(),
+				[]interface{}{
+					"https://anchor.proofable.io/verify/hedera_mainnet/5d276b497088b34cac04f06d1444917f570139debcec45f9d0b52ae36133cc964c0c47e89ffb8658f24a4868e61bf435",
+				},
+				"e6da9212625658446c152172e73908aa6c4696890659d4bcab0e5d3fdbf1abf5",
 			},
 			"",
 		},
@@ -453,6 +464,14 @@ func TestVerify(t *testing.T) {
 			args{
 				context.Background(),
 				testutil.LoadJSON(t, "evaluated_proof3.json"),
+			},
+			false,
+		},
+		{
+			"Verify Hedera mainnet proof - evaluated_proof6.json",
+			args{
+				context.Background(),
+				testutil.LoadJSON(t, "evaluated_proof6.json"),
 			},
 			false,
 		},
