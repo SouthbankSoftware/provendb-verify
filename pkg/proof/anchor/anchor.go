@@ -359,6 +359,9 @@ func verifyEthTxnData(ctx context.Context, txnID, expectedValue, endpoint string
 }
 
 func verifyHederaTxnData(ctx context.Context, txnID, expectedValue string, mainnet bool) (er error) {
+	if dragonglassApikey == "" {
+		panic("Please supply a Dragonglass API key in the environment variable PROVENDB_VERIFY_DRAGONGLASS_API_KEY")
+	}
 	defer func() {
 		if r := recover(); r != nil {
 			er = status.NewVerificationStatusError(status.VerificationStatusFalsified, r.(error))
